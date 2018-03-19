@@ -16,8 +16,8 @@ const (
 
 func newClient(t *testing.T) *Client {
 	caller, err := websocket.NewCaller(node)
-	client, err := NewClient(caller)
 	require.NoError(t, err)
+	client := NewClient(caller)
 	return client
 }
 

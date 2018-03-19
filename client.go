@@ -17,11 +17,10 @@ type Client struct {
 }
 
 // NewClient creates a new RPC client that use the given CallCloser internally.
-func NewClient(cc caller.CallCloser) (*Client, error) {
+func NewClient(cc caller.CallCloser) *Client {
 	client := &Client{cc: cc}
 	client.Database = database.NewAPI(client.cc)
-
-	return client, nil
+	return client
 }
 
 // Close should be used to close the client when no longer needed.
