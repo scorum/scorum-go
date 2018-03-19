@@ -96,6 +96,7 @@ var knownOperations = map[string]reflect.Type{
 	"witness_update":                 reflect.TypeOf(WitnessUpdateOperation{}),
 	"account_create_by_committee":    reflect.TypeOf(AccountCreateByCommitteeOperation{}),
 	"account_create_with_delegation": reflect.TypeOf(AccountCreateWithDelegationOperation{}),
+	"transfer_operation":             reflect.TypeOf(TransferOperation{}),
 }
 
 // GeneralOperation
@@ -183,3 +184,13 @@ type WitnessUpdateOperationProps struct {
 	AccountCreationFee string `json:"account_creation_fee"`
 	MaximumBlockSize   int32  `json:"maximum_block_size"`
 }
+
+// TransferOperation
+type TransferOperation struct {
+	From   string `json:"from"`
+	To     string `json:"to"`
+	Amount string `json:"amount"`
+	Memo   string `json:"memo"`
+}
+
+func (op *TransferOperation) GetName() string { return "transfer_operation" }
