@@ -2,51 +2,42 @@ package database
 
 import (
 	"encoding/json"
-	"errors"
-	"time"
+
+	"github.com/scorum/scorum-go/types"
 )
-
-type Time struct {
-	time.Time
-}
-
-func (t *Time) UnmarshalJSON(b []byte) (err error) {
-	t.Time, err = time.Parse("\"2006-01-02T15:04:05\"", string(b))
-	return err
-}
 
 type BlockHeader struct {
 	TransactionMerkleRoot string            `json:"transaction_merkle_root"`
 	Previous              string            `json:"previous"`
-	Timestamp             Time              `json:"timestamp"`
+	Timestamp             types.Time        `json:"timestamp"`
 	Witness               string            `json:"witness"`
 	Extensions            []json.RawMessage `json:"extensions"`
 }
 
 type DynamicGlobalProperties struct {
-	ID                       int32  `json:"id"`
-	Time                     Time   `json:"time"`
-	HeadBlockNumber          int32  `json:"head_block_number"`
-	HeadBlockID              string `json:"head_block_id"`
-	CurrentWitness           string `json:"current_witness"`
-	TotalSupply              string `json:"total_supply"`
-	AccountsCurrentSupply    string `json:"accounts_current_supply"`
-	ConfidentialSupply       string `json:"confidential_supply"`
-	TotalVestingFundScorum   string `json:"total_vesting_fund_scorum"`
-	TotalVestingShares       string `json:"total_vesting_shares"`
-	TotalRewardShares2       string `json:"total_reward_shares2"`
-	MaximumBlockSize         int32  `json:"maximum_block_size"`
-	CurrentAslot             int32  `json:"current_aslot"`
-	RecentSlotsFilled        string `json:"recent_slots_filled"`
-	ParticipationCount       int32  `json:"participation_count"`
-	LastIrreversibleBlockNum int32  `json:"last_irreversible_block_num"`
-	VotePowerReserveRate     int32  `json:"vote_power_reserve_rate"`
-	InviteQuorum             int32  `json:"invite_quorum"`
-	DropoutQuorum            int32  `json:"dropout_quorum"`
-	ChangeQuorum             int32  `json:"change_quorum"`
-	CurrentReserveRatio      int32  `json:"current_reserve_ratio"`
-	AverageBlockSize         int32  `json:"average_block_size"`
-	MaxVirtualBandwidth      string `json:"max_virtual_bandwidth"`
+	ID                       uint32     `json:"id"`
+	Time                     types.Time `json:"time"`
+	HeadBlockNumber          uint32     `json:"head_block_number"`
+	HeadBlockID              string     `json:"head_block_id"`
+	CurrentWitness           string     `json:"current_witness"`
+	TotalSupply              string     `json:"total_supply"`
+	AccountsCurrentSupply    string     `json:"accounts_current_supply"`
+	ConfidentialSupply       string     `json:"confidential_supply"`
+	TotalVestingFundScorum   string     `json:"total_vesting_fund_scorum"`
+	TotalVestingShares       string     `json:"total_vesting_shares"`
+	TotalRewardShares2       string     `json:"total_reward_shares2"`
+	MaximumBlockSize         int32      `json:"maximum_block_size"`
+	CurrentAslot             int32      `json:"current_aslot"`
+	RecentSlotsFilled        string     `json:"recent_slots_filled"`
+	ParticipationCount       int32      `json:"participation_count"`
+	LastIrreversibleBlockNum int32      `json:"last_irreversible_block_num"`
+	VotePowerReserveRate     int32      `json:"vote_power_reserve_rate"`
+	InviteQuorum             int32      `json:"invite_quorum"`
+	DropoutQuorum            int32      `json:"dropout_quorum"`
+	ChangeQuorum             int32      `json:"change_quorum"`
+	CurrentReserveRatio      int32      `json:"current_reserve_ratio"`
+	AverageBlockSize         int32      `json:"average_block_size"`
+	MaxVirtualBandwidth      string     `json:"max_virtual_bandwidth"`
 }
 
 type Config struct {
@@ -101,7 +92,7 @@ type Config struct {
 	ScorumMaxVotedWitnesses                             int32  `json:"SCORUM_MAX_VOTED_WITNESSES"`
 	ScorumMaxWithdrawRoutes                             int32  `json:"SCORUM_MAX_WITHDRAW_ROUTES"`
 	ScorumMaxWitnessUrlLength                           int32  `json:"SCORUM_MAX_WITNESS_URL_LENGTH"`
-	ScorumMinAccountCreationFee                         int32  `json:"SCORUM_MIN_ACCOUNT_CREATION_FEE"`
+	ScorumMinAccountCreationFee                         string `json:"SCORUM_MIN_ACCOUNT_CREATION_FEE"`
 	ScorumMinAccountNameLength                          int32  `json:"SCORUM_MIN_ACCOUNT_NAME_LENGTH"`
 	ScorumMinBlockSizeLimit                             int32  `json:"SCORUM_MIN_BLOCK_SIZE_LIMIT"`
 	ScorumMinContentReward                              string `json:"SCORUM_MIN_CONTENT_REWARD"`
@@ -151,7 +142,7 @@ type Config struct {
 	ScorumBudgetLimitDbListSize                         int32  `json:"SCORUM_BUDGET_LIMIT_DB_LIST_SIZE"`
 	ScorumBudgetLimitApiListSize                        int32  `json:"SCORUM_BUDGET_LIMIT_API_LIST_SIZE"`
 	ScorumRegistrationBonusLimitPerMemberNBlock         int32  `json:"SCORUM_REGISTRATION_BONUS_LIMIT_PER_MEMBER_N_BLOCK"`
-	ScorumRegistrationBonusLimitPerMemberPerNBlock      string `json:"SCORUM_REGISTRATION_BONUS_LIMIT_PER_MEMBER_PER_N_BLOCK"`
+	ScorumRegistrationBonusLimitPerMemberPerNBlock      int32  `json:"SCORUM_REGISTRATION_BONUS_LIMIT_PER_MEMBER_PER_N_BLOCK"`
 	ScorumRegistrationLimitCountCommitteeMembers        int32  `json:"SCORUM_REGISTRATION_LIMIT_COUNT_COMMITTEE_MEMBERS"`
 	ScorumWitnessMissedBlocksThreshold                  int32  `json:"SCORUM_WITNESS_MISSED_BLOCKS_THRESHOLD"`
 	ScorumAtomicswapInitiatorRefundLockSecs             int32  `json:"SCORUM_ATOMICSWAP_INITIATOR_REFUND_LOCK_SECS"`
@@ -163,51 +154,51 @@ type Config struct {
 }
 
 type Account struct {
-	ID                        int32             `json:"id"`
+	ID                        uint32            `json:"id"`
 	Name                      string            `json:"name"`
-	Owner                     Authority         `json:"owner"`
-	Active                    Authority         `json:"active"`
-	Posting                   Authority         `json:"posting"`
+	Owner                     types.Authority   `json:"owner"`
+	Active                    types.Authority   `json:"active"`
+	Posting                   types.Authority   `json:"posting"`
 	MemoKey                   string            `json:"memo_key"`
 	JsonMetadata              string            `json:"json_metadata"`
 	Proxy                     string            `json:"proxy"`
-	LastOwnerUpdate           Time              `json:"last_owner_update"`
-	LastAccountUpdate         Time              `json:"last_account_update"`
-	Created                   Time              `json:"created"`
+	LastOwnerUpdate           types.Time        `json:"last_owner_update"`
+	LastAccountUpdate         types.Time        `json:"last_account_update"`
+	Created                   types.Time        `json:"created"`
 	CreatedByGenesis          bool              `json:"created_by_genesis"`
 	OwnerChallenged           bool              `json:"owner_challenged"`
 	ActiveChallenged          bool              `json:"active_challenged"`
-	LastOwnerProved           Time              `json:"last_owner_proved"`
-	LastActiveProved          Time              `json:"last_active_proved"`
+	LastOwnerProved           types.Time        `json:"last_owner_proved"`
+	LastActiveProved          types.Time        `json:"last_active_proved"`
 	RecoveryAccount           string            `json:"recovery_account"`
-	LastAccountRecovery       Time              `json:"last_account_recovery"`
+	LastAccountRecovery       types.Time        `json:"last_account_recovery"`
 	CommentCount              int32             `json:"comment_count"`
 	LifetimeVoteCount         int32             `json:"lifetime_vote_count"`
 	PostCount                 int32             `json:"post_count"`
 	CanVote                   bool              `json:"can_vote"`
 	VotingPower               int32             `json:"voting_power"`
-	LastVoteTime              Time              `json:"last_vote_time"`
+	LastVoteTime              types.Time        `json:"last_vote_time"`
 	Balance                   string            `json:"balance"`
 	VestingShares             string            `json:"vesting_shares"`
 	DelegatedVestingShares    string            `json:"delegated_vesting_shares"`
 	ReceivedVestingShares     string            `json:"received_vesting_shares"`
 	VestingWithdrawRate       string            `json:"vesting_withdraw_rate"`
-	NextVestingWithdrawal     Time              `json:"next_vesting_withdrawal"`
+	NextVestingWithdrawal     types.Time        `json:"next_vesting_withdrawal"`
 	Withdrawn                 int32             `json:"withdrawn"`
 	ToWithdraw                int32             `json:"to_withdraw"`
 	WithdrawRoutes            int32             `json:"withdraw_routes"`
-	CurationRewards           int32             `json:"curation_rewards"`
-	PostingRewards            int32             `json:"posting_rewards"`
+	CurationRewards           string            `json:"curation_rewards"`
+	PostingRewards            string            `json:"posting_rewards"`
 	ProxiedVsfVotes           []int32           `json:"proxied_vsf_votes"`
 	WitnessesVotedFor         int32             `json:"witnesses_voted_for"`
 	AverageBandwidth          int64             `json:"average_bandwidth"`
 	LifetimeBandwidth         int64             `json:"lifetime_bandwidth"`
-	LastBandwidthUpdate       Time              `json:"last_bandwidth_update"`
+	LastBandwidthUpdate       types.Time        `json:"last_bandwidth_update"`
 	AverageMarketBandwidth    int64             `json:"average_market_bandwidth"`
 	LifetimeMarketBandwidth   int64             `json:"lifetime_market_bandwidth"`
-	LastMarketBandwidthUpdate Time              `json:"last_market_bandwidth_update"`
-	LastPost                  Time              `json:"last_post"`
-	LastRootPost              Time              `json:"last_root_post"`
+	LastMarketBandwidthUpdate types.Time        `json:"last_market_bandwidth_update"`
+	LastPost                  types.Time        `json:"last_post"`
+	LastRootPost              types.Time        `json:"last_root_post"`
 	VestingBalance            string            `json:"vesting_balance"`
 	Reputation                int32             `json:"reputation"`
 	TransferHistory           []json.RawMessage `json:"transfer_history"`
@@ -217,42 +208,6 @@ type Account struct {
 	WitnessVotes              []string          `json:"witness_votes"`
 	TagsUsage                 []json.RawMessage `json:"tags_usage"`
 	GuestBloggers             []json.RawMessage `json:"guest_bloggers"`
-}
-
-type AccountHistory map[int32]*OperationObject
-
-func (ah *AccountHistory) UnmarshalJSON(b []byte) (err error) {
-	// unmarshal array
-	var o []json.RawMessage
-	if err := json.Unmarshal(b, &o); err != nil {
-		return err
-	}
-
-	// foreach operation
-	for _, op := range o {
-		var kv []json.RawMessage
-		if err := json.Unmarshal(op, &kv); err != nil {
-			return err
-		}
-
-		if len(kv) != 2 {
-			return errors.New("invalid operation format: should be sequence number, value")
-		}
-
-		var key int32
-		if err := json.Unmarshal(kv[0], &key); err != nil {
-			return err
-		}
-
-		var ops OperationObject
-		if err := json.Unmarshal(kv[1], &ops); err != nil {
-			return err
-		}
-
-		(*ah)[key] = &ops
-	}
-
-	return nil
 }
 
 type ChainProperties struct {
@@ -275,24 +230,8 @@ type Block struct {
 }
 
 type Transaction struct {
-	RefBlockNum    int64           `json:"ref_block_num"`
-	RefBlockPrefix int64           `json:"ref_block_prefix"`
-	Expiration     Time            `json:"expiration"`
-	Operations     OperationsArray `json:"operations"`
-}
-
-type Authority struct {
-	WeightThreshold int32          `json:"weight_threshold"`
-	AccountAuths    StringInt64Map `json:"account_auths"`
-	KeyAuths        StringInt64Map `json:"key_auths"`
-}
-
-type OperationObject struct {
-	BlockNumber int64          `json:"block"`
-	TrxID       string         `json:"trx_id"`
-	TrxInBlock  int32          `json:"trx_in_block"`
-	OpInTrx     int32          `json:"op_in_trx"`
-	VirtualOp   int32          `json:"virtual_op"`
-	Timestamp   Time           `json:"timestamp"`
-	Operations  OperationsFlat `json:"op"`
+	RefBlockNum    uint32                `json:"ref_block_num"`
+	RefBlockPrefix uint32                `json:"ref_block_prefix"`
+	Expiration     types.Time            `json:"expiration"`
+	Operations     types.OperationsArray `json:"operations"`
 }

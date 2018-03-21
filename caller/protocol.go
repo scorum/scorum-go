@@ -1,9 +1,12 @@
-package websocket
+package caller
 
 import (
 	"encoding/json"
+	"errors"
 	"strconv"
 )
+
+var ErrShutdown = errors.New("connection is shut down")
 
 type (
 	RPCRequest struct {

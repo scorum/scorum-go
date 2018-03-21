@@ -1,4 +1,4 @@
-package database
+package types
 
 import (
 	"encoding/json"
@@ -11,6 +11,16 @@ type Operation interface {
 }
 
 type OperationsArray []Operation
+
+type OperationObject struct {
+	BlockNumber uint32         `json:"block"`
+	TrxID       string         `json:"trx_id"`
+	TrxInBlock  uint32         `json:"trx_in_block"`
+	OpInTrx     uint32         `json:"op_in_trx"`
+	VirtualOp   uint32         `json:"virtual_op"`
+	Timestamp   Time           `json:"timestamp"`
+	Operations  OperationsFlat `json:"op"`
+}
 
 func (t *OperationsArray) UnmarshalJSON(b []byte) (err error) {
 	// unmarshal array

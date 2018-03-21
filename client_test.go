@@ -6,33 +6,48 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/scorum/scorum-go/apis/database"
-	"github.com/scorum/scorum-go/caller/websocket"
+	"github.com/scorum/scorum-go/caller"
 	"github.com/stretchr/testify/require"
 )
 
 const (
-	node = "ws://localhost:8090"
+	nodeWS   = "ws://blockchain.scorum.com:8003"
+	nodeHTTP = "http://blockchain.scorum.com:8003"
 )
 
-func newClient(t *testing.T) *Client {
-	caller, err := websocket.NewCaller(node)
+func newWebsocketClient(t *testing.T) *Client {
+	caller, err := caller.NewWebsocketCaller(nodeWS)
 	require.NoError(t, err)
 	client := NewClient(caller)
 	return client
 }
 
-func TestGetConfig(t *testing.T) {
-	client := newClient(t)
+func newHttpClient(t *testing.T) *Client {
+	caller := caller.NewHttpCaller(nodeHTTP)
+	client := NewClient(caller)
+	return client
+}
+
+func TestGetConfigViaHttp(t *testing.T) {
+	client := newHttpClient(t)
 	defer client.Close()
 
 	config, err := client.Database.GetConfig()
 	require.NoError(t, err)
 	require.Equal(t, "SCR", config.ScorumAddressPrefix)
-	t.Logf("config: %+v", config)
+}
+
+func TestGetConfigViaWS(t *testing.T) {
+	client := newWebsocketClient(t)
+	defer client.Close()
+
+	config, err := client.Database.GetConfig()
+	require.NoError(t, err)
+	require.Equal(t, "SCR", config.ScorumAddressPrefix)
 }
 
 func TestGetChainProperties(t *testing.T) {
-	client := newClient(t)
+	client := newWebsocketClient(t)
 	defer client.Close()
 
 	props, err := client.Database.GetChainProperties()
@@ -43,7 +58,7 @@ func TestGetChainProperties(t *testing.T) {
 }
 
 func TestGetDynamicGlobalProperties(t *testing.T) {
-	client := newClient(t)
+	client := newWebsocketClient(t)
 	defer client.Close()
 
 	config, err := client.Database.GetDynamicGlobalProperties()
@@ -52,7 +67,7 @@ func TestGetDynamicGlobalProperties(t *testing.T) {
 }
 
 func TestGetBlockHeader(t *testing.T) {
-	client := newClient(t)
+	client := newWebsocketClient(t)
 	defer client.Close()
 
 	block, err := client.Database.GetBlockHeader(24)
@@ -60,25 +75,23 @@ func TestGetBlockHeader(t *testing.T) {
 
 	require.NotEmpty(t, block.Previous)
 	require.NotEmpty(t, block.Witness)
-	require.Equal(t, block.Timestamp.Time, time.Date(2018, 1, 30, 12, 27, 6, 0, time.UTC))
-	t.Logf("block header: %+v", block)
 }
 
 func TestGetBlock(t *testing.T) {
-	client := newClient(t)
+	client := newWebsocketClient(t)
 	defer client.Close()
 
-	block, err := client.Database.GetBlock(int32(686))
+	block, err := client.Database.GetBlock(int32(50))
 	require.NoError(t, err)
 
 	require.NotEmpty(t, block.Previous)
-	require.NotEmpty(t, block.Witness)
-	require.True(t, len(block.TransactionIDs) != 0)
+	require.NotEmpty(t, "00000032cfc128aff54138d97d183c416a352ec7", block.BlockID)
+	require.Equal(t, "scorumwitness2", block.Witness)
 	t.Logf("block: %+v", block)
 }
 
 func TestGetOpsInBlock(t *testing.T) {
-	client := newClient(t)
+	client := newWebsocketClient(t)
 	defer client.Close()
 
 	ops, err := client.Database.GetOpsInBlock(int32(686), false)
@@ -88,22 +101,21 @@ func TestGetOpsInBlock(t *testing.T) {
 }
 
 func TestGetAccounts(t *testing.T) {
-	client := newClient(t)
+	client := newHttpClient(t)
 	defer client.Close()
 
-	accounts, err := client.Database.GetAccounts("user20", "bob")
+	accounts, err := client.Database.GetAccounts("andrewww")
 	require.NoError(t, err)
 
-	require.Len(t, accounts, 2)
-	require.Equal(t, "user20", accounts[0].Name)
-	require.Equal(t, "bob", accounts[1].Name)
+	require.Len(t, accounts, 1)
+	require.Equal(t, "andrewww", accounts[0].Name)
 }
 
 func TestGetAccountHistory(t *testing.T) {
-	client := newClient(t)
+	client := newWebsocketClient(t)
 	defer client.Close()
 
-	history, err := client.Database.GetAccountHistory("initdelegate", -1, 1000)
+	history, err := client.AccountHistory.GetAccountHistory("andrewww", -1, 1000)
 	require.NoError(t, err)
 	require.True(t, len(history) > 0)
 
@@ -112,7 +124,7 @@ func TestGetAccountHistory(t *testing.T) {
 }
 
 func TestSetBlockAppliedCallback(t *testing.T) {
-	client := newClient(t)
+	client := newWebsocketClient(t)
 	defer client.Close()
 
 	var called bool

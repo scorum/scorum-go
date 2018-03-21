@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/scorum/scorum-go/caller"
+	"github.com/scorum/scorum-go/types"
 )
 
 const APIID = "database_api"
@@ -57,17 +58,6 @@ func (api *API) GetAccounts(names ...string) ([]*Account, error) {
 	return resp, err
 }
 
-// Get accounts by the provided names
-// Account operations have sequence numbers from 0 to N where N is the most recent operation. This method
-// returns operations in the range [from-limit, from]
-// from - the absolute sequence number, -1 means most recent, limit is the number of operations before from.
-// limit - the maximum number of items that can be queried (0 to 1000], must be less than from
-func (api *API) GetAccountHistory(name string, from, limit int32) (AccountHistory, error) {
-	resp := make(AccountHistory, 0)
-	err := api.call("get_account_history", []interface{}{name, from, limit}, &resp)
-	return resp, err
-}
-
 // Get a full signed block by the given block number
 func (api *API) GetBlock(blockNum int32) (*Block, error) {
 	var resp Block
@@ -76,8 +66,8 @@ func (api *API) GetBlock(blockNum int32) (*Block, error) {
 }
 
 // Get sequence of operations included/generated within a particular block
-func (api *API) GetOpsInBlock(blockNum int32, onlyVirtual bool) ([]*OperationObject, error) {
-	var resp []*OperationObject
+func (api *API) GetOpsInBlock(blockNum int32, onlyVirtual bool) ([]*types.OperationObject, error) {
+	var resp []*types.OperationObject
 	err := api.call("get_ops_in_block", []interface{}{blockNum, onlyVirtual}, &resp)
 	return resp, err
 }

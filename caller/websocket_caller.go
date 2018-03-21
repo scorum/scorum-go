@@ -1,8 +1,7 @@
-package websocket
+package caller
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -12,9 +11,7 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-var ErrShutdown = errors.New("connection is shut down")
-
-type Caller struct {
+type WebsocketCaller struct {
 	conn *websocket.Conn
 
 	reqMutex  sync.Mutex
@@ -38,13 +35,13 @@ type callRequest struct {
 	Reply *json.RawMessage // reply message
 }
 
-func NewCaller(url string) (*Caller, error) {
+func NewWebsocketCaller(url string) (*WebsocketCaller, error) {
 	ws, err := websocket.Dial(url, "", "http://localhost")
 	if err != nil {
 		return nil, err
 	}
 
-	client := &Caller{
+	client := &WebsocketCaller{
 		conn:      ws,
 		pending:   make(map[uint64]*callRequest),
 		callbacks: make(map[uint64]func(args json.RawMessage)),
@@ -54,39 +51,40 @@ func NewCaller(url string) (*Caller, error) {
 	return client, nil
 }
 
-func (client *Caller) Call(api string, method string, args []interface{}, reply interface{}) error {
-	client.reqMutex.Lock()
-	defer client.reqMutex.Unlock()
+func (caller *WebsocketCaller) Call(api string, method string, args []interface{}, reply interface{}) error {
+	caller.reqMutex.Lock()
+	defer caller.reqMutex.Unlock()
 
-	client.mutex.Lock()
-	if client.closing || client.shutdown {
-		client.mutex.Unlock()
+	caller.mutex.Lock()
+	if caller.closing || caller.shutdown {
+		caller.mutex.Unlock()
 		return ErrShutdown
 	}
 
 	// increase request id
-	if client.requestID == math.MaxUint64 {
-		client.requestID = 0
+	if caller.requestID == math.MaxUint64 {
+		caller.requestID = 0
 	}
-	client.requestID++
-	seq := client.requestID
+	caller.requestID++
+	seq := caller.requestID
 
 	c := &callRequest{
 		Done: make(chan bool, 1),
 	}
-	client.pending[seq] = c
-	client.mutex.Unlock()
+	caller.pending[seq] = c
+	caller.mutex.Unlock()
+
+	request := RPCRequest{
+		Method: "call",
+		ID:     caller.requestID,
+		Params: []interface{}{api, method, args},
+	}
 
 	// send Json Rcp request
-	err := websocket.JSON.Send(client.conn, RPCRequest{
-		Method: "call",
-		ID:     client.requestID,
-		Params: []interface{}{api, method, args},
-	})
-	if err != nil {
-		client.mutex.Lock()
-		delete(client.pending, seq)
-		client.mutex.Unlock()
+	if err := websocket.JSON.Send(caller.conn, request); err != nil {
+		caller.mutex.Lock()
+		delete(caller.pending, seq)
+		caller.mutex.Unlock()
 		return err
 	}
 
@@ -104,31 +102,31 @@ func (client *Caller) Call(api string, method string, args []interface{}, reply 
 	return nil
 }
 
-func (client *Caller) input() {
+func (caller *WebsocketCaller) input() {
 	for {
 		var message string
-		if err := websocket.Message.Receive(client.conn, &message); err != nil {
-			client.stop(err)
+		if err := websocket.Message.Receive(caller.conn, &message); err != nil {
+			caller.stop(err)
 			return
 		}
 
 		var response RPCResponse
 		if err := json.Unmarshal([]byte(message), &response); err != nil {
-			client.stop(err)
+			caller.stop(err)
 			return
 		} else {
-			if call, ok := client.pending[response.ID]; ok {
-				client.onCallResponse(response, call)
+			if call, ok := caller.pending[response.ID]; ok {
+				caller.onCallResponse(response, call)
 			} else {
 				//the message is not a pending call, but probably a callback notice
 				var incoming rpcIncoming
 				if err := json.Unmarshal([]byte(message), &incoming); err != nil {
-					client.stop(err)
+					caller.stop(err)
 					return
 				}
 				if incoming.Method == "notice" {
-					if err := client.onNotice(incoming); err != nil {
-						client.stop(err)
+					if err := caller.onNotice(incoming); err != nil {
+						caller.stop(err)
 						return
 					}
 				} else {
@@ -140,30 +138,30 @@ func (client *Caller) input() {
 }
 
 // Return pending clients and shutdown the client
-func (client *Caller) stop(err error) {
-	client.reqMutex.Lock()
-	client.shutdown = true
-	for _, call := range client.pending {
+func (caller *WebsocketCaller) stop(err error) {
+	caller.reqMutex.Lock()
+	caller.shutdown = true
+	for _, call := range caller.pending {
 		call.Error = err
 		call.Done <- true
 	}
-	client.reqMutex.Unlock()
+	caller.reqMutex.Unlock()
 }
 
 // Call response handler
-func (client *Caller) onCallResponse(response RPCResponse, call *callRequest) {
-	client.mutex.Lock()
-	delete(client.pending, response.ID)
+func (caller *WebsocketCaller) onCallResponse(response RPCResponse, call *callRequest) {
+	caller.mutex.Lock()
+	delete(caller.pending, response.ID)
 	if response.Error != nil {
 		call.Error = response.Error
 	}
 	call.Reply = response.Result
 	call.Done <- true
-	client.mutex.Unlock()
+	caller.mutex.Unlock()
 }
 
 // Incoming notice handler
-func (client *Caller) onNotice(incoming rpcIncoming) error {
+func (caller *WebsocketCaller) onNotice(incoming rpcIncoming) error {
 	length := len(incoming.Params)
 
 	if length == 0 {
@@ -180,7 +178,7 @@ func (client *Caller) onNotice(incoming rpcIncoming) error {
 			return fmt.Errorf("failed to parse %s as callbackID in notice(%+v): %s", incoming.Params[i], incoming, err)
 		}
 
-		notice := client.callbacks[callbackID]
+		notice := caller.callbacks[callbackID]
 		if notice == nil {
 			return fmt.Errorf("callback %d is not registered", callbackID)
 		}
@@ -192,28 +190,28 @@ func (client *Caller) onNotice(incoming rpcIncoming) error {
 	return nil
 }
 
-func (client *Caller) SetCallback(api string, method string, notice func(args json.RawMessage)) error {
+func (caller *WebsocketCaller) SetCallback(api string, method string, notice func(args json.RawMessage)) error {
 	// increase callback id
-	client.callbackMutex.Lock()
-	if client.callbackID == math.MaxUint64 {
-		client.callbackID = 0
+	caller.callbackMutex.Lock()
+	if caller.callbackID == math.MaxUint64 {
+		caller.callbackID = 0
 	}
-	client.callbackID++
-	client.callbacks[client.callbackID] = notice
-	client.callbackMutex.Unlock()
+	caller.callbackID++
+	caller.callbacks[caller.callbackID] = notice
+	caller.callbackMutex.Unlock()
 
-	return client.Call(api, method, []interface{}{client.callbackID}, nil)
+	return caller.Call(api, method, []interface{}{caller.callbackID}, nil)
 }
 
 // Close calls the underlying web socket Close method. If the connection is already
 // shutting down, ErrShutdown is returned.
-func (client *Caller) Close() error {
-	client.mutex.Lock()
-	if client.closing {
-		client.mutex.Unlock()
+func (caller *WebsocketCaller) Close() error {
+	caller.mutex.Lock()
+	if caller.closing {
+		caller.mutex.Unlock()
 		return ErrShutdown
 	}
-	client.closing = true
-	client.mutex.Unlock()
-	return client.conn.Close()
+	caller.closing = true
+	caller.mutex.Unlock()
+	return caller.conn.Close()
 }
