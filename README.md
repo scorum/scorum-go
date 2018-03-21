@@ -13,13 +13,12 @@ import "github.com/scorum/scorum-go"
 ```go
 import scorum "github.com/scorum/scorum-go"
 
-const pageSize = 50
 const testNet = "http://blockchain.scorum.com:8003"
 
 client := scorum.NewClient(caller.NewHttpCaller(testNet))
 
 // get last 100 transactions of the particular account
-history, _ := client.AccountHistory.GetAccountHistory("acc", -1, 100)
+history, _ := client.AccountHistory.GetAccountHistory("acc1", -1, 100)
 
 for seq, trx := range history {
     for _, op := range trx.Operations {
@@ -31,10 +30,4 @@ for seq, trx := range history {
 }
 
 ```
-
-## Status
-
-This package is still under rapid development and it is by no means complete.
-For now there is no promise considering API stability. Some response objects
-maybe be typed incorrectly. The package is already usable, though.
 
