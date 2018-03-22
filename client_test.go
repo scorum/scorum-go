@@ -1,11 +1,9 @@
 package rpc
 
 import (
+	"fmt"
 	"testing"
 	"time"
-
-	"fmt"
-	"os"
 
 	"github.com/scorum/scorum-go/apis/database"
 	"github.com/scorum/scorum-go/encoding/wif"
@@ -151,7 +149,7 @@ func TestBroadcastTransactionSynchronous(t *testing.T) {
 	})
 
 	// Sign.
-	privKey, err := wif.Decode(os.Getenv("5J16hMiSPQbh3qbZABbLGxug25kyLVsfib6j5XGMR8U42upHS87"))
+	privKey, err := wif.Decode("5J16hMiSPQbh3qbZABbLGxug25kyLVsfib6j5XGMR8U42upHS87")
 	require.NoError(t, tx.Sign([][]byte{privKey}, sign.TestChain))
 
 	resp, err := client.NetworkBroadcast.BroadcastTransactionSynchronous(tx.Transaction)

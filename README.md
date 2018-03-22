@@ -1,7 +1,8 @@
 # scorum/scorum-go
 [![GoDoc](https://godoc.org/github.com/scorum/scorum-go?status.svg)](https://godoc.org/github.com/scorum/scorum-go)
 
-Golang RPC client library for [Scorum](https://scorumcoins.com).
+Golang RPC client library for [Scorum](https://scorumcoins.com). Both http and websocket transports are supported.
+The websocket one allows to set callbacks.
 
 ## Usage
 
@@ -11,11 +12,15 @@ import "github.com/scorum/scorum-go"
 
 ## Example
 ```go
-import scorum "github.com/scorum/scorum-go"
-
+import (
+ scorum "github.com/scorum/scorum-go"
+ "github.com/scorum/scorum-go/transport/http"
+)
 const testNet = "http://blockchain.scorum.com:8003"
 
-client := scorum.NewClient(caller.NewHttpCaller(testNet))
+// create client
+transport := http.NewTransport(testNet)
+client := NewClient(transport)
 
 // get last 100 transactions of the particular account
 history, _ := client.AccountHistory.GetAccountHistory("acc1", -1, 100)
