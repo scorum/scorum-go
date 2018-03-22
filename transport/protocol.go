@@ -1,9 +1,9 @@
-package caller
+package transport
 
 import (
 	"encoding/json"
 	"errors"
-	"strconv"
+	"fmt"
 )
 
 var ErrShutdown = errors.New("connection is shut down")
@@ -44,12 +44,12 @@ type (
 		} `json:"data"`
 	}
 
-	rpcIncoming struct {
+	RPCIncoming struct {
 		Method string            `json:"method"`
 		Params []json.RawMessage `json:"params"`
 	}
 )
 
 func (e *RPCError) Error() string {
-	return strconv.Itoa(e.Code) + ": " + e.Message
+	return fmt.Sprintf("%s: %s", e.Code, e.Message)
 }

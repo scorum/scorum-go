@@ -1,4 +1,4 @@
-package caller
+package websocket
 
 import (
 	"encoding/json"
@@ -8,10 +8,12 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/pkg/errors"
+	"github.com/scorum/scorum-go/transport"
 	"golang.org/x/net/websocket"
 )
 
-type WebsocketCaller struct {
+type Transport struct {
 	conn *websocket.Conn
 
 	reqMutex  sync.Mutex
@@ -35,13 +37,13 @@ type callRequest struct {
 	Reply *json.RawMessage // reply message
 }
 
-func NewWebsocketCaller(url string) (*WebsocketCaller, error) {
+func NewTransport(url string) (*Transport, error) {
 	ws, err := websocket.Dial(url, "", "http://localhost")
 	if err != nil {
 		return nil, err
 	}
 
-	client := &WebsocketCaller{
+	client := &Transport{
 		conn:      ws,
 		pending:   make(map[uint64]*callRequest),
 		callbacks: make(map[uint64]func(args json.RawMessage)),
@@ -51,14 +53,14 @@ func NewWebsocketCaller(url string) (*WebsocketCaller, error) {
 	return client, nil
 }
 
-func (caller *WebsocketCaller) Call(api string, method string, args []interface{}, reply interface{}) error {
+func (caller *Transport) Call(api string, method string, args []interface{}, reply interface{}) error {
 	caller.reqMutex.Lock()
 	defer caller.reqMutex.Unlock()
 
 	caller.mutex.Lock()
 	if caller.closing || caller.shutdown {
 		caller.mutex.Unlock()
-		return ErrShutdown
+		return transport.ErrShutdown
 	}
 
 	// increase request id
@@ -74,7 +76,7 @@ func (caller *WebsocketCaller) Call(api string, method string, args []interface{
 	caller.pending[seq] = c
 	caller.mutex.Unlock()
 
-	request := RPCRequest{
+	request := transport.RPCRequest{
 		Method: "call",
 		ID:     caller.requestID,
 		Params: []interface{}{api, method, args},
@@ -102,7 +104,7 @@ func (caller *WebsocketCaller) Call(api string, method string, args []interface{
 	return nil
 }
 
-func (caller *WebsocketCaller) input() {
+func (caller *Transport) input() {
 	for {
 		var message string
 		if err := websocket.Message.Receive(caller.conn, &message); err != nil {
@@ -110,7 +112,7 @@ func (caller *WebsocketCaller) input() {
 			return
 		}
 
-		var response RPCResponse
+		var response transport.RPCResponse
 		if err := json.Unmarshal([]byte(message), &response); err != nil {
 			caller.stop(err)
 			return
@@ -119,7 +121,7 @@ func (caller *WebsocketCaller) input() {
 				caller.onCallResponse(response, call)
 			} else {
 				//the message is not a pending call, but probably a callback notice
-				var incoming rpcIncoming
+				var incoming transport.RPCIncoming
 				if err := json.Unmarshal([]byte(message), &incoming); err != nil {
 					caller.stop(err)
 					return
@@ -138,7 +140,7 @@ func (caller *WebsocketCaller) input() {
 }
 
 // Return pending clients and shutdown the client
-func (caller *WebsocketCaller) stop(err error) {
+func (caller *Transport) stop(err error) {
 	caller.reqMutex.Lock()
 	caller.shutdown = true
 	for _, call := range caller.pending {
@@ -149,7 +151,7 @@ func (caller *WebsocketCaller) stop(err error) {
 }
 
 // Call response handler
-func (caller *WebsocketCaller) onCallResponse(response RPCResponse, call *callRequest) {
+func (caller *Transport) onCallResponse(response transport.RPCResponse, call *callRequest) {
 	caller.mutex.Lock()
 	delete(caller.pending, response.ID)
 	if response.Error != nil {
@@ -161,7 +163,7 @@ func (caller *WebsocketCaller) onCallResponse(response RPCResponse, call *callRe
 }
 
 // Incoming notice handler
-func (caller *WebsocketCaller) onNotice(incoming rpcIncoming) error {
+func (caller *Transport) onNotice(incoming transport.RPCIncoming) error {
 	length := len(incoming.Params)
 
 	if length == 0 {
@@ -175,7 +177,7 @@ func (caller *WebsocketCaller) onNotice(incoming rpcIncoming) error {
 	for i := 0; i < length; i += 2 {
 		callbackID, err := strconv.ParseUint(string(incoming.Params[i]), 10, 64)
 		if err != nil {
-			return fmt.Errorf("failed to parse %s as callbackID in notice(%+v): %s", incoming.Params[i], incoming, err)
+			return errors.Wrapf(err, "failed to parse %s as callbackID in notice %+v", incoming.Params[i], incoming)
 		}
 
 		notice := caller.callbacks[callbackID]
@@ -190,7 +192,7 @@ func (caller *WebsocketCaller) onNotice(incoming rpcIncoming) error {
 	return nil
 }
 
-func (caller *WebsocketCaller) SetCallback(api string, method string, notice func(args json.RawMessage)) error {
+func (caller *Transport) SetCallback(api string, method string, notice func(args json.RawMessage)) error {
 	// increase callback id
 	caller.callbackMutex.Lock()
 	if caller.callbackID == math.MaxUint64 {
@@ -205,11 +207,11 @@ func (caller *WebsocketCaller) SetCallback(api string, method string, notice fun
 
 // Close calls the underlying web socket Close method. If the connection is already
 // shutting down, ErrShutdown is returned.
-func (caller *WebsocketCaller) Close() error {
+func (caller *Transport) Close() error {
 	caller.mutex.Lock()
 	if caller.closing {
 		caller.mutex.Unlock()
-		return ErrShutdown
+		return transport.ErrShutdown
 	}
 	caller.closing = true
 	caller.mutex.Unlock()

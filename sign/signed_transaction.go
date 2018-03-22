@@ -12,9 +12,19 @@ import (
 	"github.com/scorum/scorum-go/types"
 )
 
-// #cgo LDFLAGS: -lsecp256k1
-// #include <stdlib.h>
-// #include "signing.h"
+/*
+#cgo CFLAGS: -I./libsecp256k1
+#cgo CFLAGS: -I./libsecp256k1/src/
+#define USE_NUM_NONE
+#define USE_FIELD_10X26
+#define USE_FIELD_INV_BUILTIN
+#define USE_SCALAR_8X32
+#define USE_SCALAR_INV_BUILTIN
+#define NDEBUG
+#include "./libsecp256k1/src/secp256k1.c"
+#include "./libsecp256k1/src/modules/recovery/main_impl.h"
+#include "signing.h"
+*/
 import "C"
 
 type SignedTransaction struct {
@@ -24,7 +34,7 @@ type SignedTransaction struct {
 func NewSignedTransaction(tx *types.Transaction) *SignedTransaction {
 	if tx.Expiration == nil {
 		expiration := time.Now().Add(30 * time.Second)
-		tx.Expiration = &types.Time{&expiration}
+		tx.Expiration = &types.Time{Time: &expiration}
 	}
 
 	return &SignedTransaction{tx}

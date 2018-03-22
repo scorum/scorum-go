@@ -1,9 +1,10 @@
-package caller
+package websocket
 
 import (
 	"sync"
 	"testing"
 
+	"github.com/scorum/scorum-go/transport"
 	"github.com/stretchr/testify/require"
 )
 
@@ -12,7 +13,7 @@ const (
 )
 
 func TestUnknownAPIID(t *testing.T) {
-	caller, err := NewWebsocketCaller(nodeWS)
+	caller, err := NewTransport(nodeWS)
 	require.NoError(t, err)
 	defer caller.Close()
 
@@ -20,12 +21,12 @@ func TestUnknownAPIID(t *testing.T) {
 	err = caller.Call("some api", "some method", []interface{}{}, reply)
 	require.Error(t, err)
 
-	require.IsType(t, &RPCError{}, err)
+	require.IsType(t, &transport.RPCError{}, err)
 	t.Logf("error: %+v", err)
 }
 
 func TestUnknownMethod(t *testing.T) {
-	caller, err := NewWebsocketCaller(nodeWS)
+	caller, err := NewTransport(nodeWS)
 	require.NoError(t, err)
 	defer caller.Close()
 
@@ -33,12 +34,12 @@ func TestUnknownMethod(t *testing.T) {
 	err = caller.Call("database_api", "some method", []interface{}{}, reply)
 	require.Error(t, err)
 
-	require.IsType(t, &RPCError{}, err)
+	require.IsType(t, &transport.RPCError{}, err)
 	t.Logf("error: %+v", err)
 }
 
 func TestTooFewArgumentsPassedToMethod(t *testing.T) {
-	caller, err := NewWebsocketCaller(nodeWS)
+	caller, err := NewTransport(nodeWS)
 	require.NoError(t, err)
 	defer caller.Close()
 
@@ -46,12 +47,12 @@ func TestTooFewArgumentsPassedToMethod(t *testing.T) {
 	err = caller.Call("database_api", "get_block_header", []interface{}{}, reply)
 	require.Error(t, err)
 
-	require.IsType(t, &RPCError{}, err)
+	require.IsType(t, &transport.RPCError{}, err)
 	t.Logf("error: %+v", err)
 }
 
 func TestParallel(t *testing.T) {
-	caller, err := NewWebsocketCaller(nodeWS)
+	caller, err := NewTransport(nodeWS)
 	require.NoError(t, err)
 	defer caller.Close()
 

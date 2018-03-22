@@ -4,9 +4,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
+	"fmt"
+	"os"
+
 	"github.com/scorum/scorum-go/apis/database"
-	"github.com/scorum/scorum-go/caller"
+	"github.com/scorum/scorum-go/encoding/wif"
+	"github.com/scorum/scorum-go/sign"
+	"github.com/scorum/scorum-go/transport/http"
+	"github.com/scorum/scorum-go/transport/websocket"
+	"github.com/scorum/scorum-go/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,20 +22,20 @@ const (
 )
 
 func newWebsocketClient(t *testing.T) *Client {
-	caller, err := caller.NewWebsocketCaller(nodeWS)
+	transport, err := websocket.NewTransport(nodeWS)
 	require.NoError(t, err)
-	client := NewClient(caller)
+	client := NewClient(transport)
 	return client
 }
 
-func newHttpClient(t *testing.T) *Client {
-	caller := caller.NewHttpCaller(nodeHTTP)
-	client := NewClient(caller)
+func newHttpClient() *Client {
+	transport := http.NewTransport(nodeHTTP)
+	client := NewClient(transport)
 	return client
 }
 
 func TestGetConfigViaHttp(t *testing.T) {
-	client := newHttpClient(t)
+	client := newHttpClient()
 	defer client.Close()
 
 	config, err := client.Database.GetConfig()
@@ -101,7 +107,7 @@ func TestGetOpsInBlock(t *testing.T) {
 }
 
 func TestGetAccounts(t *testing.T) {
-	client := newHttpClient(t)
+	client := newHttpClient()
 	defer client.Close()
 
 	accounts, err := client.Database.GetAccounts("andrewww")
@@ -120,7 +126,37 @@ func TestGetAccountHistory(t *testing.T) {
 	require.True(t, len(history) > 0)
 
 	t.Logf("history: %+v", history)
-	spew.Dump(history)
+}
+
+func TestBroadcastTransactionSynchronous(t *testing.T) {
+	client := newHttpClient()
+	defer client.Close()
+
+	props, err := client.Database.GetDynamicGlobalProperties()
+	require.NoError(t, err)
+
+	refBlockPrefix, err := sign.RefBlockPrefix(props.HeadBlockID)
+	require.NoError(t, err)
+
+	tx := sign.NewSignedTransaction(&types.Transaction{
+		RefBlockNum:    sign.RefBlockNum(props.HeadBlockNumber),
+		RefBlockPrefix: refBlockPrefix,
+	})
+
+	tx.PushOperation(&types.TransferOperation{
+		From:   "sun",
+		To:     "alona",
+		Amount: "0.000000001",
+		Memo:   fmt.Sprintf("test transfer"),
+	})
+
+	// Sign.
+	privKey, err := wif.Decode(os.Getenv("5J16hMiSPQbh3qbZABbLGxug25kyLVsfib6j5XGMR8U42upHS87"))
+	require.NoError(t, tx.Sign([][]byte{privKey}, sign.TestChain))
+
+	resp, err := client.NetworkBroadcast.BroadcastTransactionSynchronous(tx.Transaction)
+	require.NoError(t, err)
+	require.NotEmpty(t, resp.ID)
 }
 
 func TestSetBlockAppliedCallback(t *testing.T) {

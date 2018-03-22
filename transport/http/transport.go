@@ -1,4 +1,4 @@
-package caller
+package http
 
 import (
 	"bytes"
@@ -9,22 +9,25 @@ import (
 	"math"
 	"net/http"
 	"sync"
+
+	"github.com/pkg/errors"
+	"github.com/scorum/scorum-go/transport"
 )
 
-type HttpCaller struct {
+type Transport struct {
 	Url string
 
 	requestID uint64
 	reqMutex  sync.Mutex
 }
 
-func NewHttpCaller(url string) *HttpCaller {
-	return &HttpCaller{
+func NewTransport(url string) *Transport {
+	return &Transport{
 		Url: url,
 	}
 }
 
-func (caller *HttpCaller) Call(api string, method string, args []interface{}, reply interface{}) error {
+func (caller *Transport) Call(api string, method string, args []interface{}, reply interface{}) error {
 	caller.reqMutex.Lock()
 	defer caller.reqMutex.Unlock()
 
@@ -34,7 +37,7 @@ func (caller *HttpCaller) Call(api string, method string, args []interface{}, re
 	}
 	caller.requestID++
 
-	request := RPCRequest{
+	request := transport.RPCRequest{
 		Method: "call",
 		ID:     caller.requestID,
 		Params: []interface{}{api, method, args},
@@ -57,14 +60,14 @@ func (caller *HttpCaller) Call(api string, method string, args []interface{}, re
 
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to read body")
 	}
 
 	log.Println(string(respBody))
 
-	var rpcResponse RPCResponse
+	var rpcResponse transport.RPCResponse
 	if err = json.Unmarshal(respBody, &rpcResponse); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to unmarshal response: %+v", string(respBody))
 	}
 
 	if rpcResponse.Error != nil {
@@ -73,17 +76,17 @@ func (caller *HttpCaller) Call(api string, method string, args []interface{}, re
 
 	if rpcResponse.Result != nil {
 		if err := json.Unmarshal(*rpcResponse.Result, reply); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to unmarshal rpc result: %+v", rpcResponse.Result)
 		}
 	}
 
 	return nil
 }
 
-func (caller *HttpCaller) SetCallback(api string, method string, notice func(args json.RawMessage)) error {
+func (caller *Transport) SetCallback(api string, method string, notice func(args json.RawMessage)) error {
 	panic("not supported")
 }
 
-func (caller *HttpCaller) Close() error {
+func (caller *Transport) Close() error {
 	return nil
 }
