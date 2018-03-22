@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"reflect"
+
+	"github.com/scorum/scorum-go/encoding/transaction"
 )
 
 type Operation interface {
-	GetName() string
+	Type() OpType
 }
 
 type OperationsArray []Operation
@@ -82,11 +84,11 @@ func (t *OperationsFlat) UnmarshalJSON(b []byte) (err error) {
 }
 
 func unmarshalOperation(key string, obj json.RawMessage) (Operation, error) {
-	opType, ok := knownOperations[key]
+	opType, ok := knownOperations[OpType(key)]
 	if !ok {
 		// operation is unknown wrap it as a general operation
-		val := GeneralOperation{
-			Name: key,
+		val := UnknownOperation{
+			kind: OpType(key),
 			Data: obj,
 		}
 		return &val, nil
@@ -99,7 +101,7 @@ func unmarshalOperation(key string, obj json.RawMessage) (Operation, error) {
 	}
 }
 
-var knownOperations = map[string]reflect.Type{
+var knownOperations = map[OpType]reflect.Type{
 	"account_create":                 reflect.TypeOf(AccountCreateOperation{}),
 	"transfer_to_vesting":            reflect.TypeOf(TransferToVestingOperation{}),
 	"account_witness_vote":           reflect.TypeOf(AccountWitnessVoteOperation{}),
@@ -109,13 +111,13 @@ var knownOperations = map[string]reflect.Type{
 	"transfer_operation":             reflect.TypeOf(TransferOperation{}),
 }
 
-// GeneralOperation
-type GeneralOperation struct {
-	Name string
+// UnknownOperation
+type UnknownOperation struct {
+	kind OpType
 	Data json.RawMessage
 }
 
-func (op *GeneralOperation) GetName() string { return op.Name }
+func (op *UnknownOperation) Type() OpType { return op.kind }
 
 // AccountCreateWithDelegationOperation
 type AccountCreateWithDelegationOperation struct {
@@ -130,7 +132,7 @@ type AccountCreateWithDelegationOperation struct {
 	Extensions     []json.RawMessage `json:"extensions"`
 }
 
-func (op *AccountCreateWithDelegationOperation) GetName() string {
+func (op *AccountCreateWithDelegationOperation) Type() OpType {
 	return "account_create_with_delegation"
 }
 
@@ -145,7 +147,7 @@ type AccountCreateByCommitteeOperation struct {
 	JsonMetadata   string    `json:"json_metadata"`
 }
 
-func (op *AccountCreateByCommitteeOperation) GetName() string { return "account_create_by_committee" }
+func (op *AccountCreateByCommitteeOperation) Type() OpType { return "account_create_by_committee" }
 
 // TransferToVestingOperation
 type TransferToVestingOperation struct {
@@ -154,7 +156,7 @@ type TransferToVestingOperation struct {
 	Amount string `json:"amount"`
 }
 
-func (op *TransferToVestingOperation) GetName() string { return "transfer_to_vesting" }
+func (op *TransferToVestingOperation) Type() OpType { return "transfer_to_vesting" }
 
 // AccountCreateOperation
 type AccountCreateOperation struct {
@@ -168,7 +170,7 @@ type AccountCreateOperation struct {
 	JsonMetadata   string    `json:"json_metadata"`
 }
 
-func (op *AccountCreateOperation) GetName() string { return "account_create" }
+func (op *AccountCreateOperation) Type() OpType { return "account_create" }
 
 // AccountWitnessVoteOperation
 type AccountWitnessVoteOperation struct {
@@ -177,7 +179,7 @@ type AccountWitnessVoteOperation struct {
 	Approve bool   `json:"approve"`
 }
 
-func (op *AccountWitnessVoteOperation) GetName() string { return "account_witness_vote" }
+func (op *AccountWitnessVoteOperation) Type() OpType { return "account_witness_vote" }
 
 // WitnessUpdateOperation
 type WitnessUpdateOperation struct {
@@ -188,7 +190,7 @@ type WitnessUpdateOperation struct {
 	Fee             string                      `json:"fee"`
 }
 
-func (op *WitnessUpdateOperation) GetName() string { return "witness_update" }
+func (op *WitnessUpdateOperation) Type() OpType { return "witness_update" }
 
 type WitnessUpdateOperationProps struct {
 	AccountCreationFee string `json:"account_creation_fee"`
@@ -203,4 +205,24 @@ type TransferOperation struct {
 	Memo   string `json:"memo"`
 }
 
-func (op *TransferOperation) GetName() string { return "transfer_operation" }
+func (op *TransferOperation) Type() OpType { return TransferOpType }
+
+// VoteOperation
+type VoteOperation struct {
+	Voter    string `json:"voter"`
+	Author   string `json:"author"`
+	Permlink string `json:"permlink"`
+	Weight   int16  `json:"weight"`
+}
+
+func (op *VoteOperation) Type() OpType { return VoteOpType }
+
+func (op *VoteOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.Encode(op.Voter)
+	enc.Encode(op.Author)
+	enc.Encode(op.Permlink)
+	enc.Encode(op.Weight)
+	return enc.Err()
+}

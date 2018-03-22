@@ -216,22 +216,15 @@ type ChainProperties struct {
 }
 
 type Block struct {
-	Previous              string            `json:"previous"`
-	BlockID               string            `json:"block_id"`
-	WitnessSignature      string            `json:"witness_signature"`
-	SigningKey            string            `json:"signing_key"`
-	TransactionIDs        []string          `json:"transaction_ids"`
-	Timestamp             string            `json:"timestamp"`
-	Witness               string            `json:"witness"`
-	TransactionMerkleRoot string            `json:"transaction_merkle_root"`
-	Transactions          []Transaction     `json:"transactions"`
-	Extensions            []json.RawMessage `json:"extensions"`
-	Signatures            []string          `json:"signatures"`
-}
-
-type Transaction struct {
-	RefBlockNum    uint32                `json:"ref_block_num"`
-	RefBlockPrefix uint32                `json:"ref_block_prefix"`
-	Expiration     types.Time            `json:"expiration"`
-	Operations     types.OperationsArray `json:"operations"`
+	Previous              string              `json:"previous"`
+	BlockID               string              `json:"block_id"`
+	WitnessSignature      string              `json:"witness_signature"`
+	SigningKey            string              `json:"signing_key"`
+	TransactionIDs        []string            `json:"transaction_ids"`
+	Timestamp             string              `json:"timestamp"`
+	Witness               string              `json:"witness"`
+	TransactionMerkleRoot string              `json:"transaction_merkle_root"`
+	Transactions          []types.Transaction `json:"transactions"`
+	Extensions            []json.RawMessage   `json:"extensions"`
+	Signatures            []string            `json:"signatures"`
 }

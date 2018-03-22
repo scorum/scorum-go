@@ -3,6 +3,7 @@ package rpc
 import (
 	"github.com/scorum/scorum-go/apis/account_history"
 	"github.com/scorum/scorum-go/apis/database"
+	"github.com/scorum/scorum-go/apis/network_broadcast"
 	"github.com/scorum/scorum-go/caller"
 )
 
@@ -13,11 +14,14 @@ import (
 type Client struct {
 	cc caller.CallCloser
 
-	// Database represents database_api.
+	// Database represents database_api
 	Database *database.API
 
-	// AccountHistory represents
+	// AccountHistory represents account_history_api
 	AccountHistory *account_history.API
+
+	// NetworkBroadcast represents network_broadcast_api
+	NetworkBroadcast *network_broadcast.API
 }
 
 // NewClient creates a new RPC client that use the given CallCloser internally.
@@ -25,6 +29,7 @@ func NewClient(cc caller.CallCloser) *Client {
 	client := &Client{cc: cc}
 	client.Database = database.NewAPI(client.cc)
 	client.AccountHistory = account_history.NewAPI(client.cc)
+	client.NetworkBroadcast = network_broadcast.NewAPI(client.cc)
 	return client
 }
 
