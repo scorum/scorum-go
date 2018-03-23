@@ -27,6 +27,12 @@ func (encoder *RollingEncoder) EncodeNumber(v interface{}) {
 	}
 }
 
+func (encoder *RollingEncoder) EncodeBool(v bool) {
+	if encoder.err == nil {
+		encoder.err = encoder.next.EncodeBool(v)
+	}
+}
+
 func (encoder *RollingEncoder) Encode(v interface{}) {
 	if encoder.err == nil {
 		encoder.err = encoder.next.Encode(v)

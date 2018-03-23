@@ -5,7 +5,7 @@ type Chain struct {
 }
 
 var ScorumChain = &Chain{
-	ID: "0000000000000000000000000000000000000000000000000000000000000000",
+	ID: "9c8977e260c8b03783eb97d6eafd16fb5df958da30cd0234c630dcda99cdc8ad",
 }
 
 var TestChain = &Chain{

@@ -39,6 +39,14 @@ func (encoder *Encoder) EncodeNumber(v interface{}) error {
 	return nil
 }
 
+func (encoder *Encoder) EncodeBool(b bool) error {
+	if b {
+		return encoder.EncodeNumber(byte(1))
+	} else {
+		return encoder.EncodeNumber(byte(0))
+	}
+}
+
 func (encoder *Encoder) Encode(v interface{}) error {
 	if marshaller, ok := v.(TransactionMarshaller); ok {
 		return marshaller.MarshalTransaction(encoder)

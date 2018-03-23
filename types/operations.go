@@ -125,13 +125,13 @@ func unmarshalOperation(key string, obj json.RawMessage) (Operation, error) {
 }
 
 var knownOperations = map[OpType]reflect.Type{
-	"account_create":                 reflect.TypeOf(AccountCreateOperation{}),
-	"transfer_to_vesting":            reflect.TypeOf(TransferToVestingOperation{}),
-	"account_witness_vote":           reflect.TypeOf(AccountWitnessVoteOperation{}),
-	"witness_update":                 reflect.TypeOf(WitnessUpdateOperation{}),
-	"account_create_by_committee":    reflect.TypeOf(AccountCreateByCommitteeOperation{}),
-	"account_create_with_delegation": reflect.TypeOf(AccountCreateWithDelegationOperation{}),
-	"transfer_operation":             reflect.TypeOf(TransferOperation{}),
+	AccountCreateOpType:               reflect.TypeOf(AccountCreateOperation{}),
+	TransferToScorumpowerOpType:       reflect.TypeOf(TransferToScorumpowerOperation{}),
+	AccountWitnessVoteOpType:          reflect.TypeOf(AccountWitnessVoteOperation{}),
+	WitnessUpdateOpType:               reflect.TypeOf(WitnessUpdateOperation{}),
+	AccountCreateByCommitteeOpType:    reflect.TypeOf(AccountCreateByCommitteeOperation{}),
+	AccountCreateWithDelegationOpType: reflect.TypeOf(AccountCreateWithDelegationOperation{}),
+	TransferOpType:                    reflect.TypeOf(TransferOperation{}),
 }
 
 // UnknownOperation
@@ -156,7 +156,7 @@ type AccountCreateWithDelegationOperation struct {
 }
 
 func (op *AccountCreateWithDelegationOperation) Type() OpType {
-	return "account_create_with_delegation"
+	return AccountCreateWithDelegationOpType
 }
 
 // AccountCreateByCommitteeOperation
@@ -170,16 +170,16 @@ type AccountCreateByCommitteeOperation struct {
 	JsonMetadata   string    `json:"json_metadata"`
 }
 
-func (op *AccountCreateByCommitteeOperation) Type() OpType { return "account_create_by_committee" }
+func (op *AccountCreateByCommitteeOperation) Type() OpType { return AccountCreateByCommitteeOpType }
 
-// TransferToVestingOperation
-type TransferToVestingOperation struct {
+// TransferToScorumpowerOperation
+type TransferToScorumpowerOperation struct {
 	From   string `json:"from"`
 	To     string `json:"to"`
 	Amount string `json:"amount"`
 }
 
-func (op *TransferToVestingOperation) Type() OpType { return "transfer_to_vesting" }
+func (op *TransferToScorumpowerOperation) Type() OpType { return TransferToScorumpowerOpType }
 
 // AccountCreateOperation
 type AccountCreateOperation struct {
@@ -193,7 +193,7 @@ type AccountCreateOperation struct {
 	JsonMetadata   string    `json:"json_metadata"`
 }
 
-func (op *AccountCreateOperation) Type() OpType { return "account_create" }
+func (op *AccountCreateOperation) Type() OpType { return AccountCreateOpType }
 
 // AccountWitnessVoteOperation
 type AccountWitnessVoteOperation struct {
@@ -202,7 +202,16 @@ type AccountWitnessVoteOperation struct {
 	Approve bool   `json:"approve"`
 }
 
-func (op *AccountWitnessVoteOperation) Type() OpType { return "account_witness_vote" }
+func (op *AccountWitnessVoteOperation) Type() OpType { return AccountWitnessVoteOpType }
+
+func (op *AccountWitnessVoteOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.Encode(op.Account)
+	enc.Encode(op.Witness)
+	enc.EncodeBool(op.Approve)
+	return enc.Err()
+}
 
 // WitnessUpdateOperation
 type WitnessUpdateOperation struct {
@@ -213,7 +222,7 @@ type WitnessUpdateOperation struct {
 	Fee             string                      `json:"fee"`
 }
 
-func (op *WitnessUpdateOperation) Type() OpType { return "witness_update" }
+func (op *WitnessUpdateOperation) Type() OpType { return WitnessUpdateOpType }
 
 type WitnessUpdateOperationProps struct {
 	AccountCreationFee string `json:"account_creation_fee"`
