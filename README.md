@@ -16,6 +16,7 @@ import (
  scorum "github.com/scorum/scorum-go"
  "github.com/scorum/scorum-go/transport/http"
 )
+
 const testNet = "http://blockchain.scorum.com:8003"
 
 // create client

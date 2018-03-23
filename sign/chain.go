@@ -9,5 +9,5 @@ var ScorumChain = &Chain{
 }
 
 var TestChain = &Chain{
-	ID: "18dcf0a285365fc58b71f18b3d3fec954aa0c141c44e4e5cb4cf777b9eab274e",
+	ID: "f679096aa28f0019b5ceb1914b2c6a8488913276250a6d50c7037ad60e710257",
 }

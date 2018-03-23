@@ -144,12 +144,13 @@ func TestBroadcastTransactionSynchronous(t *testing.T) {
 	tx.PushOperation(&types.TransferOperation{
 		From:   "sun",
 		To:     "alona",
-		Amount: "0.000000001",
+		Amount: types.AssertFromFloat(0.000000001),
 		Memo:   fmt.Sprintf("test transfer"),
 	})
 
 	// Sign.
 	privKey, err := wif.Decode("5J16hMiSPQbh3qbZABbLGxug25kyLVsfib6j5XGMR8U42upHS87")
+	require.NoError(t, err)
 	require.NoError(t, tx.Sign([][]byte{privKey}, sign.TestChain))
 
 	resp, err := client.NetworkBroadcast.BroadcastTransactionSynchronous(tx.Transaction)

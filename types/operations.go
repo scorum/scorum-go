@@ -14,6 +14,29 @@ type Operation interface {
 
 type OperationsArray []Operation
 
+func (ops OperationsArray) MarshalJSON() ([]byte, error) {
+	tuples := make([]*operationTuple, 0, len(ops))
+	for _, op := range ops {
+		tuples = append(tuples, &operationTuple{
+			Type: op.Type(),
+			Data: op,
+		})
+	}
+	return json.Marshal(tuples)
+}
+
+type operationTuple struct {
+	Type OpType
+	Data Operation
+}
+
+func (op *operationTuple) MarshalJSON() ([]byte, error) {
+	return json.Marshal([]interface{}{
+		op.Type,
+		op.Data,
+	})
+}
+
 type OperationObject struct {
 	BlockNumber uint32         `json:"block"`
 	TrxID       string         `json:"trx_id"`
@@ -201,7 +224,7 @@ type WitnessUpdateOperationProps struct {
 type TransferOperation struct {
 	From   string `json:"from"`
 	To     string `json:"to"`
-	Amount string `json:"amount"`
+	Amount Asset  `json:"amount"`
 	Memo   string `json:"memo"`
 }
 
