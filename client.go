@@ -1,10 +1,14 @@
 package rpc
 
 import (
+	"time"
+
 	"github.com/scorum/scorum-go/apis/account_history"
 	"github.com/scorum/scorum-go/apis/database"
 	"github.com/scorum/scorum-go/apis/network_broadcast"
 	"github.com/scorum/scorum-go/caller"
+	"github.com/scorum/scorum-go/sign"
+	"github.com/scorum/scorum-go/types"
 )
 
 // Client can be used to access Scorum remote APIs.
@@ -37,4 +41,38 @@ func NewClient(cc caller.CallCloser) *Client {
 // It simply calls Close() on the underlying CallCloser.
 func (client *Client) Close() error {
 	return client.cc.Close()
+}
+
+func (client *Client) Broadcast(chain *sign.Chain, wifs []string, operations ...types.Operation) (*network_broadcast.BroadcastResponse, error) {
+	props, err := client.Database.GetDynamicGlobalProperties()
+	if err != nil {
+		return nil, err
+	}
+
+	block, err := client.Database.GetBlock(props.LastIrreversibleBlockNum)
+	if err != nil {
+		return nil, err
+	}
+
+	refBlockPrefix, err := sign.RefBlockPrefix(block.Previous)
+	if err != nil {
+		return nil, err
+	}
+
+	expiration := props.Time.Add(10 * time.Minute)
+	stx := sign.NewSignedTransaction(&types.Transaction{
+		RefBlockNum:    sign.RefBlockNum(props.LastIrreversibleBlockNum - 1&0xffff),
+		RefBlockPrefix: refBlockPrefix,
+		Expiration:     &types.Time{Time: &expiration},
+	})
+
+	for _, op := range operations {
+		stx.PushOperation(op)
+	}
+
+	if err = stx.Sign(wifs, chain); err != nil {
+		return nil, err
+	}
+
+	return client.NetworkBroadcast.BroadcastTransactionSynchronous(stx.Transaction)
 }

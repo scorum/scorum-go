@@ -4,39 +4,20 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
-	"time"
-	"unsafe"
 
+	"github.com/btcsuite/btcd/btcec"
+	"github.com/btcsuite/btcutil"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"github.com/scorum/scorum-go/encoding/transaction"
 	"github.com/scorum/scorum-go/types"
 )
-
-/*
-#cgo CFLAGS: -I./libsecp256k1
-#cgo CFLAGS: -I./libsecp256k1/src/
-#define USE_NUM_NONE
-#define USE_FIELD_10X26
-#define USE_FIELD_INV_BUILTIN
-#define USE_SCALAR_8X32
-#define USE_SCALAR_INV_BUILTIN
-#define NDEBUG
-#include "./libsecp256k1/src/secp256k1.c"
-#include "./libsecp256k1/src/modules/recovery/main_impl.h"
-#include "signing.h"
-*/
-import "C"
 
 type SignedTransaction struct {
 	*types.Transaction
 }
 
 func NewSignedTransaction(tx *types.Transaction) *SignedTransaction {
-	if tx.Expiration == nil {
-		expiration := time.Now().Add(30 * time.Second)
-		tx.Expiration = &types.Time{Time: &expiration}
-	}
-
 	return &SignedTransaction{tx}
 }
 
@@ -78,105 +59,29 @@ func (tx *SignedTransaction) Digest(chain *Chain) ([]byte, error) {
 	return digest[:], nil
 }
 
-func (tx *SignedTransaction) Sign(privKeys [][]byte, chain *Chain) error {
+func (tx *SignedTransaction) Sign(wifs []string, chain *Chain) error {
 	digest, err := tx.Digest(chain)
 	if err != nil {
 		return err
 	}
 
-	// Sign.
-	cDigest := C.CBytes(digest)
-	defer C.free(cDigest)
+	spew.Dump(hex.EncodeToString(digest))
 
-	cKeys := make([]unsafe.Pointer, 0, len(privKeys))
-	for _, key := range privKeys {
-		cKeys = append(cKeys, C.CBytes(key))
-	}
-	defer func() {
-		for _, cKey := range cKeys {
-			C.free(cKey)
+	privKeys := make([]*btcec.PrivateKey, len(wifs))
+	for index, wif := range wifs {
+		w, err := btcutil.DecodeWIF(wif)
+		if err != nil {
+			return err
 		}
-	}()
-
-	sigs := make([][]byte, 0, len(privKeys))
-	for _, cKey := range cKeys {
-		var (
-			signature [64]byte
-			recid     C.int
-		)
-
-		code := C.sign_transaction(
-			(*C.uchar)(cDigest), (*C.uchar)(cKey), (*C.uchar)(&signature[0]), &recid)
-		if code == 0 {
-			return errors.New("sign_transaction returned 0")
-		}
-
-		sig := make([]byte, 65)
-		sig[0] = byte(recid)
-		copy(sig[1:], signature[:])
-
-		sigs = append(sigs, sig)
+		privKeys[index] = w.PrivKey
 	}
 
 	// Set the signature array in the transaction.
-	sigsHex := make([]string, 0, len(sigs))
-	for _, sig := range sigs {
-		sigsHex = append(sigsHex, hex.EncodeToString(sig))
+	sigsHex := make([]string, len(privKeys))
+	for index, privKey := range privKeys {
+		sig := SignBufferSha256(digest, privKey.ToECDSA())
+		sigsHex[index] = hex.EncodeToString(sig)
 	}
-
 	tx.Transaction.Signatures = sigsHex
 	return nil
-}
-
-func (tx *SignedTransaction) Verify(pubKeys [][]byte, chain *Chain) (bool, error) {
-	// Compute the digest, again.
-	digest, err := tx.Digest(chain)
-	if err != nil {
-		return false, err
-	}
-
-	cDigest := C.CBytes(digest)
-	defer C.free(cDigest)
-
-	// Make sure to free memory.
-	cSigs := make([]unsafe.Pointer, 0, len(tx.Signatures))
-	defer func() {
-		for _, cSig := range cSigs {
-			C.free(cSig)
-		}
-	}()
-
-	// Collect verified public keys.
-	pubKeysFound := make([][]byte, len(pubKeys))
-	for i, signature := range tx.Signatures {
-		sig, err := hex.DecodeString(signature)
-		if err != nil {
-			return false, errors.Wrap(err, "failed to decode signature hex")
-		}
-
-		recoverParameter := sig[0] - 27 - 4
-		sig = sig[1:]
-
-		cSig := C.CBytes(sig)
-		cSigs = append(cSigs, cSig)
-
-		var publicKey [33]byte
-
-		code := C.verify_recoverable_signature(
-			(*C.uchar)(cDigest),
-			(*C.uchar)(cSig),
-			(C.int)(recoverParameter),
-			(*C.uchar)(&publicKey[0]),
-		)
-		if code == 1 {
-			pubKeysFound[i] = publicKey[:]
-		}
-	}
-
-	for i := range pubKeys {
-		if !bytes.Equal(pubKeysFound[i], pubKeys[i]) {
-			return false, nil
-		}
-	}
-	return true, nil
 }

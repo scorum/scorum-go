@@ -30,7 +30,7 @@ type DynamicGlobalProperties struct {
 	CurrentAslot             int32      `json:"current_aslot"`
 	RecentSlotsFilled        string     `json:"recent_slots_filled"`
 	ParticipationCount       int32      `json:"participation_count"`
-	LastIrreversibleBlockNum int32      `json:"last_irreversible_block_num"`
+	LastIrreversibleBlockNum uint32     `json:"last_irreversible_block_num"`
 	VotePowerReserveRate     int32      `json:"vote_power_reserve_rate"`
 	InviteQuorum             int32      `json:"invite_quorum"`
 	DropoutQuorum            int32      `json:"dropout_quorum"`

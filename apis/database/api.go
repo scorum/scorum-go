@@ -59,7 +59,7 @@ func (api *API) GetAccounts(names ...string) ([]*Account, error) {
 }
 
 // Get a full signed block by the given block number
-func (api *API) GetBlock(blockNum int32) (*Block, error) {
+func (api *API) GetBlock(blockNum uint32) (*Block, error) {
 	var resp Block
 	err := api.call("get_block", []interface{}{blockNum}, &resp)
 	return &resp, err
