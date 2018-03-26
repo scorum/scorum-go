@@ -23,6 +23,10 @@ func (as Asset) String() string {
 	return fmt.Sprintf("%s %s", as.d.StringFixed(9), Symbol)
 }
 
+func (as Asset) Decimal() decimal.Decimal {
+	return as.d
+}
+
 func (as Asset) MarshalJSON() ([]byte, error) {
 	return []byte(`"` + as.String() + `"`), nil
 }

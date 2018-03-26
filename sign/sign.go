@@ -13,14 +13,14 @@ import (
 	"github.com/scorum/scorum-go/sign/rfc6979"
 )
 
-func SignBufferSha256(buf_sha256 []byte, private_key *ecdsa.PrivateKey) []byte {
-	var buf_sha256_clone = make([]byte, len(buf_sha256))
-	copy(buf_sha256_clone, buf_sha256)
+func SignBufferSha256(bufSha256 []byte, privateKey *ecdsa.PrivateKey) []byte {
+	var buf_sha256_clone = make([]byte, len(bufSha256))
+	copy(buf_sha256_clone, bufSha256)
 
 	nonce := 0
 
 	for {
-		r, s, err := rfc6979.SignECDSA(private_key, buf_sha256_clone, sha256.New, nonce)
+		r, s, err := rfc6979.SignECDSA(privateKey, buf_sha256_clone, sha256.New, nonce)
 		nonce++
 		if err != nil {
 			log.Println(err)
@@ -37,7 +37,7 @@ func SignBufferSha256(buf_sha256 []byte, private_key *ecdsa.PrivateKey) []byte {
 			// bitcoind checks the bit length of R and S here. The ecdsa signature
 			// algorithm returns R and S mod N therefore they will be the bitsize of
 			// the curve, and thus correctly sized.
-			key := (*secp256k1.PrivateKey)(private_key)
+			key := (*secp256k1.PrivateKey)(privateKey)
 			curve := secp256k1.S256()
 			max_counter := 4 //max_counter := (curve.H+1)*2
 			for i := 0; i < max_counter; i++ {

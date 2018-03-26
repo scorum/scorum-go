@@ -1,13 +1,12 @@
-package rpc
+package scorumgo
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
 	"github.com/scorum/scorum-go/apis/database"
-	"github.com/scorum/scorum-go/encoding/wif"
 	"github.com/scorum/scorum-go/sign"
+	rpc "github.com/scorum/scorum-go/transport"
 	"github.com/scorum/scorum-go/transport/http"
 	"github.com/scorum/scorum-go/transport/websocket"
 	"github.com/scorum/scorum-go/types"
@@ -17,6 +16,7 @@ import (
 const (
 	nodeWS   = "ws://blockchain.scorum.com:8003"
 	nodeHTTP = "http://blockchain.scorum.com:8003"
+	nodeLive = "https://rpc.scorum.com"
 )
 
 func newWebsocketClient(t *testing.T) *Client {
@@ -26,14 +26,14 @@ func newWebsocketClient(t *testing.T) *Client {
 	return client
 }
 
-func newHttpClient() *Client {
+func newHTTPClient() *Client {
 	transport := http.NewTransport(nodeHTTP)
 	client := NewClient(transport)
 	return client
 }
 
 func TestGetConfigViaHttp(t *testing.T) {
-	client := newHttpClient()
+	client := newHTTPClient()
 	defer client.Close()
 
 	config, err := client.Database.GetConfig()
@@ -85,7 +85,7 @@ func TestGetBlock(t *testing.T) {
 	client := newWebsocketClient(t)
 	defer client.Close()
 
-	block, err := client.Database.GetBlock(int32(50))
+	block, err := client.Database.GetBlock(uint32(50))
 	require.NoError(t, err)
 
 	require.NotEmpty(t, block.Previous)
@@ -105,57 +105,44 @@ func TestGetOpsInBlock(t *testing.T) {
 }
 
 func TestGetAccounts(t *testing.T) {
-	client := newHttpClient()
+	client := newHTTPClient()
 	defer client.Close()
 
-	accounts, err := client.Database.GetAccounts("andrewww")
+	accounts, err := client.Database.GetAccounts("leonarda", "andrewww")
 	require.NoError(t, err)
 
-	require.Len(t, accounts, 1)
-	require.Equal(t, "andrewww", accounts[0].Name)
+	require.Len(t, accounts, 2)
+	require.Equal(t, "leonarda", accounts[0].Name)
+	require.Equal(t, "andrewww", accounts[1].Name)
 }
 
 func TestGetAccountHistory(t *testing.T) {
 	client := newWebsocketClient(t)
 	defer client.Close()
 
-	history, err := client.AccountHistory.GetAccountHistory("andrewww", -1, 1000)
+	history, err := client.AccountHistory.GetAccountHistory("leonarda", -1, 1000)
 	require.NoError(t, err)
 	require.True(t, len(history) > 0)
 
 	t.Logf("history: %+v", history)
 }
 
-func TestBroadcastTransactionSynchronous(t *testing.T) {
-	client := newHttpClient()
-	defer client.Close()
+func TestClient_Broadcast(t *testing.T) {
+	transport := http.NewTransport(nodeLive)
+	client := NewClient(transport)
 
-	props, err := client.Database.GetDynamicGlobalProperties()
-	require.NoError(t, err)
-
-	refBlockPrefix, err := sign.RefBlockPrefix(props.HeadBlockID)
-	require.NoError(t, err)
-
-	tx := sign.NewSignedTransaction(&types.Transaction{
-		RefBlockNum:    sign.RefBlockNum(props.HeadBlockNumber),
-		RefBlockPrefix: refBlockPrefix,
+	megaherz := "5KHK69Be8P8NQLy46KXugJWyNkxw8Nw3Mzue4wD8ygx48emMugd"
+	_, err := client.Broadcast(sign.ScorumChain, []string{megaherz}, &types.AccountWitnessVoteOperation{
+		Account: "megaherz",
+		Witness: "andrewww",
+		Approve: false,
 	})
+	require.NotNil(t, err)
 
-	tx.PushOperation(&types.TransferOperation{
-		From:   "sun",
-		To:     "alona",
-		Amount: types.AssertFromFloat(0.000000001),
-		Memo:   fmt.Sprintf("test transfer"),
-	})
-
-	// Sign.
-	privKey, err := wif.Decode("5J16hMiSPQbh3qbZABbLGxug25kyLVsfib6j5XGMR8U42upHS87")
-	require.NoError(t, err)
-	require.NoError(t, tx.Sign([][]byte{privKey}, sign.TestChain))
-
-	resp, err := client.NetworkBroadcast.BroadcastTransactionSynchronous(tx.Transaction)
-	require.NoError(t, err)
-	require.NotEmpty(t, resp.ID)
+	perr, ok := err.(*rpc.RPCError)
+	require.True(t, ok)
+	require.Equal(t, "assert_exception", perr.Data.Name)
+	require.Equal(t, int(10), perr.Data.Code)
 }
 
 func TestSetBlockAppliedCallback(t *testing.T) {

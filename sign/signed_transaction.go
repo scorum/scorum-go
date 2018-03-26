@@ -7,7 +7,6 @@ import (
 
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcutil"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"github.com/scorum/scorum-go/encoding/transaction"
 	"github.com/scorum/scorum-go/types"
@@ -64,8 +63,6 @@ func (tx *SignedTransaction) Sign(wifs []string, chain *Chain) error {
 	if err != nil {
 		return err
 	}
-
-	spew.Dump(hex.EncodeToString(digest))
 
 	privKeys := make([]*btcec.PrivateKey, len(wifs))
 	for index, wif := range wifs {

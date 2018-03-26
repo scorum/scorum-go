@@ -1,8 +1,9 @@
-package rpc
+package scorumgo
 
 import (
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/scorum/scorum-go/apis/account_history"
 	"github.com/scorum/scorum-go/apis/database"
 	"github.com/scorum/scorum-go/apis/network_broadcast"
@@ -43,20 +44,21 @@ func (client *Client) Close() error {
 	return client.cc.Close()
 }
 
+// Sign the given operations with the wifs and broadcast them as one transaction
 func (client *Client) Broadcast(chain *sign.Chain, wifs []string, operations ...types.Operation) (*network_broadcast.BroadcastResponse, error) {
 	props, err := client.Database.GetDynamicGlobalProperties()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to get dynamic global properties")
 	}
 
 	block, err := client.Database.GetBlock(props.LastIrreversibleBlockNum)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to get block")
 	}
 
 	refBlockPrefix, err := sign.RefBlockPrefix(block.Previous)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to sign block prefix")
 	}
 
 	expiration := props.Time.Add(10 * time.Minute)
@@ -71,7 +73,7 @@ func (client *Client) Broadcast(chain *sign.Chain, wifs []string, operations ...
 	}
 
 	if err = stx.Sign(wifs, chain); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to sign the transaction")
 	}
 
 	return client.NetworkBroadcast.BroadcastTransactionSynchronous(stx.Transaction)
