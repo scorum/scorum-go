@@ -15,8 +15,24 @@ type Asset struct {
 	d decimal.Decimal
 }
 
-func AssertFromFloat(value float64) Asset {
-	return Asset{d: decimal.NewFromFloat(value)}
+func AssetFromFloat(value float64) *Asset {
+	return &Asset{d: decimal.NewFromFloat(value)}
+}
+
+func AssetFromString(value string) (*Asset, error) {
+	index := strings.Index(value, Symbol)
+	if index != -1 {
+		if len(value) == len(Symbol)+index {
+			value = value[0 : index-1]
+		} else {
+			return nil, errors.New(fmt.Sprintf("can't convert %s to asset", value))
+		}
+	}
+	d, err := decimal.NewFromString(value)
+	if err != nil {
+		return nil, err
+	}
+	return &Asset{d: d}, nil
 }
 
 func (as Asset) String() string {

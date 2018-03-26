@@ -15,13 +15,25 @@ func TestAsset_UnmarshalJSON(t *testing.T) {
 }
 
 func TestAsset_MarshalJSON(t *testing.T) {
-	asset := AssertFromFloat(123.56)
+	asset := AssetFromFloat(123.56)
 	bytes, err := asset.MarshalJSON()
 	require.NoError(t, err)
 	require.Equal(t, `"123.560000000 SCR"`, string(bytes))
 }
 
 func TestAsset_String(t *testing.T) {
-	asset := AssertFromFloat(123.56)
+	asset := AssetFromFloat(123.56)
 	require.Equal(t, "123.560000000 SCR", asset.String())
+}
+
+func TestAsset_AssertFromString(t *testing.T) {
+	asset, err := AssetFromString("123.56 SCR")
+	require.NoError(t, err)
+	require.Equal(t, "123.560000000 SCR", asset.String())
+
+	asset, err = AssetFromString("123.56 SCP")
+	require.Error(t, err)
+
+	asset, err = AssetFromString("123.56 SCR PTR")
+	require.Error(t, err)
 }
