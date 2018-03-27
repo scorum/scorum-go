@@ -12,6 +12,7 @@ type Operation interface {
 	Type() OpType
 }
 
+// []Operations coming from the Api in the following form: [["op1", {}], ["op2", {}], ...]
 type OperationsArray []Operation
 
 func (ops OperationsArray) MarshalJSON() ([]byte, error) {
@@ -38,16 +39,16 @@ func (op *operationTuple) MarshalJSON() ([]byte, error) {
 }
 
 type OperationObject struct {
-	BlockNumber uint32         `json:"block"`
-	TrxID       string         `json:"trx_id"`
-	TrxInBlock  uint32         `json:"trx_in_block"`
-	OpInTrx     uint32         `json:"op_in_trx"`
-	VirtualOp   uint32         `json:"virtual_op"`
-	Timestamp   Time           `json:"timestamp"`
-	Operations  OperationsFlat `json:"op"`
+	BlockNumber             uint32         `json:"block"`
+	TransactionID           string         `json:"trx_id"`
+	TransactionsInBlock     uint32         `json:"trx_in_block"`
+	OperationsInTransaction uint32         `json:"op_in_trx"`
+	VirtualOperations       uint32         `json:"virtual_op"`
+	Timestamp               Time           `json:"timestamp"`
+	Operations              OperationsFlat `json:"op"`
 }
 
-func (t *OperationsArray) UnmarshalJSON(b []byte) (err error) {
+func (ops *OperationsArray) UnmarshalJSON(b []byte) (err error) {
 	// unmarshal array
 	var o []json.RawMessage
 	if err := json.Unmarshal(b, &o); err != nil {
@@ -75,15 +76,17 @@ func (t *OperationsArray) UnmarshalJSON(b []byte) (err error) {
 			return err
 		}
 
-		*t = append(*t, val)
+		*ops = append(*ops, val)
 	}
 
 	return nil
 }
 
+// []Operations coming from the Api in the following form: ["op1", {}, "op2", {}, ...]
 type OperationsFlat []Operation
 
 func (t *OperationsFlat) UnmarshalJSON(b []byte) (err error) {
+
 	// unmarshal array
 	var o []json.RawMessage
 	if err := json.Unmarshal(b, &o); err != nil {
@@ -102,7 +105,6 @@ func (t *OperationsFlat) UnmarshalJSON(b []byte) (err error) {
 
 		*t = append(*t, val)
 	}
-
 	return nil
 }
 
