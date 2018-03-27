@@ -51,5 +51,5 @@ type (
 )
 
 func (e *RPCError) Error() string {
-	return fmt.Sprintf("%s: %s", e.Code, e.Message)
+	return fmt.Sprintf("%d: %s", e.Code, e.Message)
 }

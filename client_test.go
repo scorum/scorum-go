@@ -14,20 +14,19 @@ import (
 )
 
 const (
-	nodeWS   = "ws://blockchain.scorum.com:8003"
-	nodeHTTP = "http://blockchain.scorum.com:8003"
-	nodeLive = "https://rpc.scorum.com"
+	nodeWSS   = "wss://testnet.scorum.com"
+	nodeHTTPS = "https://testnet.scorum.com"
 )
 
 func newWebsocketClient(t *testing.T) *Client {
-	transport, err := websocket.NewTransport(nodeWS)
+	transport, err := websocket.NewTransport(nodeWSS)
 	require.NoError(t, err)
 	client := NewClient(transport)
 	return client
 }
 
 func newHTTPClient() *Client {
-	transport := http.NewTransport(nodeHTTP)
+	transport := http.NewTransport(nodeHTTPS)
 	client := NewClient(transport)
 	return client
 }
@@ -90,7 +89,7 @@ func TestGetBlock(t *testing.T) {
 
 	require.NotEmpty(t, block.Previous)
 	require.NotEmpty(t, "00000032cfc128aff54138d97d183c416a352ec7", block.BlockID)
-	require.Equal(t, "scorumwitness2", block.Witness)
+	require.Equal(t, "scorumwitness14", block.Witness)
 	t.Logf("block: %+v", block)
 }
 
@@ -108,19 +107,19 @@ func TestGetAccounts(t *testing.T) {
 	client := newHTTPClient()
 	defer client.Close()
 
-	accounts, err := client.Database.GetAccounts("leonarda", "andrewww")
+	accounts, err := client.Database.GetAccounts("leonarda", "kristie")
 	require.NoError(t, err)
 
 	require.Len(t, accounts, 2)
 	require.Equal(t, "leonarda", accounts[0].Name)
-	require.Equal(t, "andrewww", accounts[1].Name)
+	require.Equal(t, "kristie", accounts[1].Name)
 }
 
 func TestGetAccountHistory(t *testing.T) {
-	client := newWebsocketClient(t)
-	defer client.Close()
+	transport := http.NewTransport(nodeHTTPS)
+	client := NewClient(transport)
 
-	history, err := client.AccountHistory.GetAccountHistory("leonarda", -1, 1000)
+	history, err := client.AccountHistory.GetAccountHistory("roselle", -1, 1000)
 	require.NoError(t, err)
 	require.True(t, len(history) > 0)
 
@@ -128,14 +127,14 @@ func TestGetAccountHistory(t *testing.T) {
 }
 
 func TestClient_Broadcast(t *testing.T) {
-	transport := http.NewTransport(nodeLive)
+	transport := http.NewTransport(nodeHTTPS)
 	client := NewClient(transport)
 
-	megaherz := "5KHK69Be8P8NQLy46KXugJWyNkxw8Nw3Mzue4wD8ygx48emMugd"
-	_, err := client.Broadcast(sign.ScorumChain, []string{megaherz}, &types.AccountWitnessVoteOperation{
-		Account: "megaherz",
-		Witness: "andrewww",
-		Approve: false,
+	roselle := "5JwWJ2m2jGG9RPcpDix5AvkDzQZJoZvpUQScsDzzXWAKMs8Q6jH"
+	_, err := client.Broadcast(sign.TestChain, []string{roselle}, &types.AccountWitnessVoteOperation{
+		Account: "roselle",
+		Witness: "scorumwitness1",
+		Approve: true,
 	})
 	require.NotNil(t, err)
 

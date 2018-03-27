@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	nodeWS = "http://blockchain.scorum.com:8003"
+	nodeHTTPS = "https://testnet.scorum.com"
 )
 
 func TestNodeIsDown(t *testing.T) {
-	caller := NewTransport("http://node_is_down.scorum.com")
+	caller := NewTransport("http://nonode.scorum.com")
 	defer caller.Close()
 
 	var reply interface{}
@@ -21,7 +21,7 @@ func TestNodeIsDown(t *testing.T) {
 }
 
 func TestUnknownAPIID(t *testing.T) {
-	caller := NewTransport(nodeWS)
+	caller := NewTransport(nodeHTTPS)
 	defer caller.Close()
 
 	var reply interface{}

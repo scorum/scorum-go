@@ -9,11 +9,11 @@ import (
 )
 
 const (
-	nodeWS = "ws://blockchain.scorum.com:8003"
+	nodeWSS = "wss://testnet.scorum.com"
 )
 
 func TestUnknownAPIID(t *testing.T) {
-	caller, err := NewTransport(nodeWS)
+	caller, err := NewTransport(nodeWSS)
 	require.NoError(t, err)
 	defer caller.Close()
 
@@ -26,7 +26,7 @@ func TestUnknownAPIID(t *testing.T) {
 }
 
 func TestUnknownMethod(t *testing.T) {
-	caller, err := NewTransport(nodeWS)
+	caller, err := NewTransport(nodeWSS)
 	require.NoError(t, err)
 	defer caller.Close()
 
@@ -39,7 +39,7 @@ func TestUnknownMethod(t *testing.T) {
 }
 
 func TestTooFewArgumentsPassedToMethod(t *testing.T) {
-	caller, err := NewTransport(nodeWS)
+	caller, err := NewTransport(nodeWSS)
 	require.NoError(t, err)
 	defer caller.Close()
 
@@ -52,7 +52,7 @@ func TestTooFewArgumentsPassedToMethod(t *testing.T) {
 }
 
 func TestParallel(t *testing.T) {
-	caller, err := NewTransport(nodeWS)
+	caller, err := NewTransport(nodeWSS)
 	require.NoError(t, err)
 	defer caller.Close()
 
