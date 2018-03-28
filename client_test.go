@@ -159,7 +159,7 @@ func TestClient_Broadcast_Transfer(t *testing.T) {
 		From:   "kristie",
 		To:     "roselle",
 		Amount: *amount,
-		Memo:   "to roselle",
+		Memo:   "dep2",
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, resp.ID)

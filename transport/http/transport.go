@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math"
 	"net/http"
 	"sync"
@@ -62,8 +61,6 @@ func (caller *Transport) Call(api string, method string, args []interface{}, rep
 	if err != nil {
 		return errors.Wrap(err, "failed to read body")
 	}
-
-	log.Println(string(respBody))
 
 	var rpcResponse transport.RPCResponse
 	if err = json.Unmarshal(respBody, &rpcResponse); err != nil {
