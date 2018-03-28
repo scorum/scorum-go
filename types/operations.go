@@ -246,7 +246,7 @@ func (op *TransferOperation) MarshalTransaction(encoder *transaction.Encoder) er
 	enc.EncodeUVarint(uint64(op.Type().Code()))
 	enc.Encode(op.From)
 	enc.Encode(op.To)
-	enc.Encode(op.Amount)
+	enc.EncodeMoney(op.Amount.String())
 	enc.Encode(op.Memo)
 	return enc.Err()
 }

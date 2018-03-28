@@ -5,6 +5,9 @@ import (
 	"io"
 	"strings"
 
+	"regexp"
+	"strconv"
+
 	"github.com/pkg/errors"
 )
 
@@ -80,6 +83,40 @@ func (encoder *Encoder) Encode(v interface{}) error {
 
 	default:
 		return errors.Errorf("encoder: unsupported type (%+v) encountered", v)
+	}
+}
+
+func (encoder *Encoder) EncodeMoney(s string) error {
+	r, _ := regexp.Compile("^[0-9]+\\.?[0-9]* [A-Za-z0-9]+$")
+	if r.MatchString(s) {
+		asset := strings.Split(s, " ")
+		amm, _ := strconv.ParseInt(strings.Replace(asset[0], ".", "", -1), 10, 64)
+		ind := strings.Index(asset[0], ".")
+		var perc int
+		if ind == -1 {
+			perc = 0
+		} else {
+			perc = len(asset[0]) - ind - 1
+		}
+		if err := binary.Write(encoder.w, binary.LittleEndian, amm); err != nil {
+			return errors.Wrapf(err, "encoder: failed to write number: %v", amm)
+		}
+		if err := binary.Write(encoder.w, binary.LittleEndian, byte(perc)); err != nil {
+			return errors.Wrapf(err, "encoder: failed to write number: %v", perc)
+		}
+
+		if _, err := io.Copy(encoder.w, strings.NewReader(asset[1])); err != nil {
+			return errors.Wrapf(err, "encoder: failed to write string: %v", asset[1])
+		}
+
+		for i := byte(len(asset[1])); i < 7; i++ {
+			if err := binary.Write(encoder.w, binary.LittleEndian, byte(0)); err != nil {
+				return errors.Wrapf(err, "encoder: failed to write number: %v", 0)
+			}
+		}
+		return nil
+	} else {
+		return errors.New("Expecting amount like '99.000 SCR'")
 	}
 }
 

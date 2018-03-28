@@ -130,7 +130,7 @@ func TestGetAccountHistory(t *testing.T) {
 	}
 }
 
-func TestClient_Broadcast(t *testing.T) {
+func TestClient_Broadcast_AccountWitnessVoteOperation(t *testing.T) {
 	transport := http.NewTransport(nodeHTTPS)
 	client := NewClient(transport)
 
@@ -146,6 +146,25 @@ func TestClient_Broadcast(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, "assert_exception", perr.Data.Name)
 	require.Equal(t, int(10), perr.Data.Code)
+}
+
+func TestClient_Broadcast_Transfer(t *testing.T) {
+	transport := http.NewTransport(nodeHTTPS)
+	client := NewClient(transport)
+
+	amount, _ := types.AssetFromString("0.0000001 SCR")
+
+	kristie := "5Jr5QevLsA2SZfDT8WcMddnL7BVzd7yGq6PZrLHJ68ZLqDQndDn"
+	resp, err := client.Broadcast(sign.TestChain, []string{kristie}, &types.TransferOperation{
+		From:   "kristie",
+		To:     "roselle",
+		Amount: *amount,
+		Memo:   "to roselle",
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, resp.ID)
+	require.NotEmpty(t, resp.BlockNum)
+	require.False(t, resp.Expired)
 }
 
 func TestSetBlockAppliedCallback(t *testing.T) {

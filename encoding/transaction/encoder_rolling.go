@@ -39,6 +39,12 @@ func (encoder *RollingEncoder) Encode(v interface{}) {
 	}
 }
 
+func (encoder *RollingEncoder) EncodeMoney(s string) {
+	if encoder.err == nil {
+		encoder.err = encoder.next.EncodeMoney(s)
+	}
+}
+
 func (encoder *RollingEncoder) Err() error {
 	return encoder.err
 }
