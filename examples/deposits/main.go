@@ -164,7 +164,6 @@ func Payout() {
 		id := depositIDs[rand.Intn(len(depositIDs))]
 
 		amount, _ := types.AssetFromString("0.00000001 SCR")
-
 		deposit := deposits[id]
 
 		// check the balance
@@ -174,7 +173,7 @@ func Payout() {
 			// broadcast the transfer operation
 			_, err := client.Broadcast(chain, []string{paymentWIF}, &types.TransferOperation{
 				From:   paymentAccount,
-				To:     deposits[id].Account,
+				To:     deposit.Account,
 				Amount: *amount,
 				Memo:   "payout from", //specify needed memo
 			})
