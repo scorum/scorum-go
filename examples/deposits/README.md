@@ -11,3 +11,5 @@ The example represent a deposits system and consists of two main parts:
   * Choose a random deposit
   * Make a transfer transaction
   * Update deposits balances with the transferred amounts
+
+![alt monitor transfers](https://github.com/scorum/scorum-go/tree/master/examples/diagrams/monitor.png "Monitor transfers")

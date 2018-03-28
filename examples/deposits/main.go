@@ -27,7 +27,7 @@ const (
 var chain = sign.TestChain
 
 var (
-	// mapping between deposit and balance
+	// deposits indexed with their ids
 	deposits map[string]*Deposit
 	// blockchain client
 	client *scorumgo.Client
@@ -75,6 +75,7 @@ func Monitor() {
 	for {
 		var recentSeq uint32
 
+		// passing -1 returns most recent history item
 		recent, err := client.AccountHistory.GetAccountHistory(paymentAccount, -1, 0)
 		if err != nil {
 			log.Printf("failed to get recent account history: %s\n", err)
@@ -153,33 +154,15 @@ func processTransfer(seq uint32, trx *types.OperationObject, op *types.TransferO
 func Payout() {
 	for {
 		mutex.Lock()
-
-		// get a random deposit
-		depositIDs := make([]string, len(deposits))
-		idx := 0
-		for d := range deposits {
-			depositIDs[idx] = d
-			idx++
-		}
-		id := depositIDs[rand.Intn(len(depositIDs))]
-
+		deposit := randomDeposit()
 		amount, _ := types.AssetFromString("0.00000001 SCR")
-		deposit := deposits[id]
 
 		// check the balance
 		if deposit.Balance.LessThan(amount.Decimal()) {
 			log.Printf("not enough SCR to transfer to %s\n", deposit.Account)
 		} else {
-			// broadcast the transfer operation
-			_, err := client.Broadcast(chain, []string{paymentWIF}, &types.TransferOperation{
-				From:   paymentAccount,
-				To:     deposit.Account,
-				Amount: *amount,
-				Memo:   "payout from", //specify needed memo
-			})
-
-			if err != nil {
-				log.Printf("failed to transfer %s to %s", amount, deposit)
+			if err := transfer(deposit.Account, *amount); err != nil {
+				log.Printf("failed to transfer %s to %s: %v", amount, deposit, err)
 			} else {
 				// decrease deposit balance
 				deposit.Balance = deposit.Balance.Sub(amount.Decimal())
@@ -187,7 +170,29 @@ func Payout() {
 		}
 
 		mutex.Unlock()
-
 		<-time.After(time.Second * 5)
 	}
+}
+
+func randomDeposit() *Deposit {
+	// get a random deposit
+	depositIDs := make([]string, len(deposits))
+	idx := 0
+	for d := range deposits {
+		depositIDs[idx] = d
+		idx++
+	}
+	id := depositIDs[rand.Intn(len(depositIDs))]
+	return deposits[id]
+}
+
+func transfer(to string, amount types.Asset) error {
+	// broadcast the transfer operation
+	_, err := client.Broadcast(chain, []string{paymentWIF}, &types.TransferOperation{
+		From:   paymentAccount,
+		To:     to,
+		Amount: amount,
+		Memo:   "payout from", //specify needed memo
+	})
+	return err
 }
