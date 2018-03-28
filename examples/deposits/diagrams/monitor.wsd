@@ -1,10 +1,10 @@
-title Monitor transfers
+title
 loop monitor
-Client->Blockchain: /get_account_history(account, -1)
-Blockchain->Client: one most recent transaction
-Client->Blockchain: /get_account_history(account, diff)
-Blockchain->Client: transactions processed within 10 seconds
-Client->Client: filter only Trasfer operations
-Client->Client: update deposit accounts
-Client->Client: sleep 10 seconds
+Monitor->Scorumd: /get_account_history(account, -1)
+Scorumd->Monitor: one most recent transaction
+Monitor->Scorumd: /get_account_history(account, diff)
+Scorumd->Monitor: transactions processed within 10 seconds
+Monitor->Monitor: filter only Trasfer operations
+Monitor->Monitor: update deposit accounts
+Monitor->Monitor: sleep 10 seconds
 end
