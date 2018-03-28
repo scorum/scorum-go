@@ -18,6 +18,8 @@ const (
 	nodeHTTPS = "https://testnet.scorum.com"
 )
 
+// test accounts available at https://github.com/scorum/scorum/wiki/Testnet-existent-accounts
+
 func newWebsocketClient(t *testing.T) *Client {
 	transport, err := websocket.NewTransport(nodeWSS)
 	require.NoError(t, err)
@@ -119,11 +121,13 @@ func TestGetAccountHistory(t *testing.T) {
 	transport := http.NewTransport(nodeHTTPS)
 	client := NewClient(transport)
 
-	history, err := client.AccountHistory.GetAccountHistory("roselle", -1, 1000)
+	history, err := client.AccountHistory.GetAccountHistory("scorumwitness1", 317, 20)
 	require.NoError(t, err)
 	require.True(t, len(history) > 0)
 
-	t.Logf("history: %+v", history)
+	for idx, item := range history {
+		t.Logf("%d %v\n", idx, item)
+	}
 }
 
 func TestClient_Broadcast(t *testing.T) {

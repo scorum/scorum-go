@@ -7,7 +7,7 @@ import (
 	"github.com/scorum/scorum-go/types"
 )
 
-type AccountHistory map[int32]*types.OperationObject
+type AccountHistory map[uint32]*types.OperationObject
 
 func (ah *AccountHistory) UnmarshalJSON(b []byte) (err error) {
 	// unmarshal array
@@ -27,7 +27,7 @@ func (ah *AccountHistory) UnmarshalJSON(b []byte) (err error) {
 			return errors.New("invalid operation format: should be sequence number, value")
 		}
 
-		var key int32
+		var key uint32
 		if err := json.Unmarshal(kv[0], &key); err != nil {
 			return err
 		}
