@@ -29,7 +29,7 @@ var chain = sign.TestChain
 var (
 	// mapping between deposit and balance
 	balances map[string]decimal.Decimal
-	// blockchaing client
+	// blockchain client
 	client *scorumgo.Client
 	// sync balances changes
 	mutex sync.Mutex
@@ -171,7 +171,7 @@ func Payout() {
 			})
 
 			if err != nil {
-				log.Printf("failed to make a transfer to %s", deposit)
+				log.Printf("failed to transfer %s to %s", amount, deposit)
 			} else {
 				// decrease deposit balance
 				balances[deposit] = balances[deposit].Sub(amount.Decimal())
