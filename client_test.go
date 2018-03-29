@@ -99,10 +99,9 @@ func TestGetOpsInBlock(t *testing.T) {
 	client := newWebsocketClient(t)
 	defer client.Close()
 
-	ops, err := client.Database.GetOpsInBlock(int32(686), false)
+	ops, err := client.Database.GetOperationsInBlock(uint32(686), false)
 	require.NoError(t, err)
-	require.Len(t, ops, 1)
-	require.Len(t, ops[0].Operations, 1)
+	require.Len(t, ops.Operations, 1)
 }
 
 func TestGetAccounts(t *testing.T) {

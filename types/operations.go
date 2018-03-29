@@ -251,6 +251,14 @@ func (op *TransferOperation) MarshalTransaction(encoder *transaction.Encoder) er
 	return enc.Err()
 }
 
+// Equal returns whether the numbers represented by d and d2 are equal.
+func (op TransferOperation) Equals(t2 TransferOperation) bool {
+	return op.To == t2.To &&
+		op.From == t2.From &&
+		op.Memo == t2.Memo &&
+		op.Amount.Decimal().Equals(t2.Amount.Decimal())
+}
+
 // VoteOperation
 type VoteOperation struct {
 	Voter    string `json:"voter"`

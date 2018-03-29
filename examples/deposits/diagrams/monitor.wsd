@@ -1,4 +1,4 @@
-title
+title Monitor transfers
 loop monitor
 Monitor->Scorumd: /get_account_history(account, -1)
 Scorumd->Monitor: one most recent transaction

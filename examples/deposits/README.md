@@ -13,3 +13,4 @@ The example represent a deposits system and consists of two main parts:
   * Update deposits balances with the transferred amounts
 
 ![alt monitor transfers](https://github.com/scorum/scorum-go/blob/master/examples/deposits/diagrams/monitor.png "Monitor transfers")
+![alt broadcast transfers](https://github.com/scorum/scorum-go/blob/master/examples/deposits/diagrams/broadcast.png "Broadcast transfers")

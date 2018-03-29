@@ -153,23 +153,22 @@ func processTransfer(seq uint32, trx *types.OperationObject, op *types.TransferO
 // makes random payout to the existing accounts
 func Payout() {
 	for {
-		mutex.Lock()
 		deposit := randomDeposit()
 		amount, _ := types.AssetFromString("0.00000001 SCR")
 
+		mutex.Lock()
 		// check the balance
 		if deposit.Balance.LessThan(amount.Decimal()) {
 			log.Printf("not enough SCR to transfer to %s\n", deposit.Account)
+			mutex.Unlock()
 		} else {
-			if err := transfer(deposit.Account, *amount); err != nil {
-				log.Printf("failed to transfer %s to %s: %v", amount, deposit, err)
-			} else {
-				// decrease deposit balance
-				deposit.Balance = deposit.Balance.Sub(amount.Decimal())
-			}
+			// decrease deposit balance
+			deposit.Balance = deposit.Balance.Sub(amount.Decimal())
+			mutex.Unlock()
+			// run transfer
+			go transfer(deposit, *amount)
 		}
 
-		mutex.Unlock()
 		<-time.After(time.Second * 5)
 	}
 }
@@ -186,13 +185,61 @@ func randomDeposit() *Deposit {
 	return deposits[id]
 }
 
-func transfer(to string, amount types.Asset) error {
-	// broadcast the transfer operation
-	_, err := client.Broadcast(chain, []string{paymentWIF}, &types.TransferOperation{
+func transfer(deposit *Deposit, amount types.Asset) {
+	transferOp := types.TransferOperation{
 		From:   paymentAccount,
-		To:     to,
+		To:     deposit.Account,
 		Amount: amount,
 		Memo:   "payout from", //specify needed memo
-	})
-	return err
+	}
+
+	revertBalance := func() {
+		mutex.Lock()
+		deposit.Balance = deposit.Balance.Add(amount.Decimal())
+		mutex.Unlock()
+	}
+
+	// broadcast the transfer operation
+	resp, err := client.Broadcast(chain, []string{paymentWIF}, &transferOp)
+	if err != nil {
+		log.Printf("failed to transfer %s to %s: %v", amount, deposit, err)
+		revertBalance()
+
+	} else {
+		// Run a cycle to make sure that the transaction is irreversible
+		for {
+			prop, err := client.Database.GetDynamicGlobalProperties()
+			if err != nil {
+				log.Printf("failed to get dynamic global propeties: %s\n", err)
+				goto Step
+			}
+
+			if resp.BlockNum > prop.LastIrreversibleBlockNum {
+				// get operation in block
+				ops, err := client.Database.GetOperationsInBlock(resp.BlockNum, false)
+				if err != nil {
+					log.Printf("failed to get operations in a block %d: %s\n", resp.BlockNum, err)
+					goto Step
+				}
+
+				// find the transfer op in the list of operations
+				for _, op := range ops.Operations {
+					switch body := op.(type) {
+					case *types.TransferOperation:
+						if body.Equals(transferOp) {
+							// transfer successful
+							return
+						}
+					}
+				}
+
+				log.Printf("%+v has not been accepted", transferOp)
+				revertBalance()
+				return
+			}
+
+		Step:
+			<-time.After(3 * time.Second)
+		}
+	}
 }
