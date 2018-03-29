@@ -66,13 +66,10 @@ func (api *API) GetBlock(blockNum uint32) (*Block, error) {
 }
 
 // Get sequence of operations included/generated within a particular block
-func (api *API) GetOperationsInBlock(blockNum uint32, onlyVirtual bool) (*types.OperationObject, error) {
+func (api *API) GetOperationsInBlock(blockNum uint32, onlyVirtual bool) ([]*types.OperationObject, error) {
 	var resp []*types.OperationObject
 	err := api.call("get_ops_in_block", []interface{}{blockNum, onlyVirtual}, &resp)
-	if err != nil {
-		return nil, err
-	}
-	return resp[0], err
+	return resp, err
 }
 
 // Set callback to invoke as soon as a new block is applied

@@ -216,19 +216,21 @@ func transfer(deposit *Deposit, amount types.Asset) {
 
 			if resp.BlockNum > prop.LastIrreversibleBlockNum {
 				// get operation in block
-				ops, err := client.Database.GetOperationsInBlock(resp.BlockNum, false)
+				trx, err := client.Database.GetOperationsInBlock(resp.BlockNum, false)
 				if err != nil {
 					log.Printf("failed to get operations in a block %d: %s\n", resp.BlockNum, err)
 					goto Step
 				}
 
 				// find the transfer op in the list of operations
-				for _, op := range ops.Operations {
-					switch body := op.(type) {
-					case *types.TransferOperation:
-						if body.Equals(transferOp) {
-							// transfer successful
-							return
+				for _, tr := range trx {
+					for _, op := range tr.Operations {
+						switch body := op.(type) {
+						case *types.TransferOperation:
+							if body.Equals(transferOp) {
+								// transfer successful
+								return
+							}
 						}
 					}
 				}

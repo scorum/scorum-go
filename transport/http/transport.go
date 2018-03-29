@@ -47,8 +47,6 @@ func (caller *Transport) Call(api string, method string, args []interface{}, rep
 		return err
 	}
 
-	println("request", string(reqBody))
-
 	resp, err := http.Post(caller.Url, "application/json", bytes.NewBuffer(reqBody))
 	if err != nil {
 		return err
@@ -63,8 +61,6 @@ func (caller *Transport) Call(api string, method string, args []interface{}, rep
 	if err != nil {
 		return errors.Wrap(err, "failed to read body")
 	}
-
-	println("response", string(respBody))
 
 	var rpcResponse transport.RPCResponse
 	if err = json.Unmarshal(respBody, &rpcResponse); err != nil {

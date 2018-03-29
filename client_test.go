@@ -95,13 +95,15 @@ func TestGetBlock(t *testing.T) {
 	t.Logf("block: %+v", block)
 }
 
-func TestGetOpsInBlock(t *testing.T) {
+func TestGetOperationsInBlock(t *testing.T) {
 	client := newWebsocketClient(t)
 	defer client.Close()
 
-	ops, err := client.Database.GetOperationsInBlock(uint32(686), false)
+	ops, err := client.Database.GetOperationsInBlock(uint32(127), false)
 	require.NoError(t, err)
-	require.Len(t, ops.Operations, 1)
+	require.Len(t, ops, 2)
+	require.Len(t, ops[0].Operations, 1)
+	require.Len(t, ops[1].Operations, 1)
 }
 
 func TestGetAccounts(t *testing.T) {
