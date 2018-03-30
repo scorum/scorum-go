@@ -206,11 +206,11 @@ func transfer(deposit *Deposit, amount types.Asset) {
 		revertBalance()
 
 	} else {
-		// Run a cycle to make sure that the transaction is irreversible
+		// run a loop to make sure that the transaction is irreversible
 		for {
 			prop, err := client.Database.GetDynamicGlobalProperties()
 			if err != nil {
-				log.Printf("failed to get dynamic global propeties: %s\n", err)
+				log.Printf("failed to get dynamic global properties: %s\n", err)
 				goto Step
 			}
 

@@ -1,4 +1,5 @@
 # scorum/scorum-go
+[![Go Report Card](https://goreportcard.com/badge/github.com/scorum/scorum-go)](https://goreportcard.com/report/github.com/scorum/scorum-go)
 [![GoDoc](https://godoc.org/github.com/scorum/scorum-go?status.svg)](https://godoc.org/github.com/scorum/scorum-go)
 
 Golang RPC client library for [Scorum](https://scorumcoins.com). Both http and websocket transports are supported.
@@ -17,7 +18,7 @@ import (
  "github.com/scorum/scorum-go/transport/http"
 )
 
-const testNet = "http://blockchain.scorum.com:8003"
+const testNet = "https://testnet.scorum.com"
 
 // create client
 transport := http.NewTransport(testNet)
