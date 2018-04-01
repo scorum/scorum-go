@@ -12,6 +12,7 @@ import (
 
 	"github.com/scorum/scorum-go"
 	"github.com/scorum/scorum-go/apis/account_history"
+	"github.com/scorum/scorum-go/apis/database"
 	"github.com/scorum/scorum-go/sign"
 	"github.com/scorum/scorum-go/transport/http"
 	"github.com/scorum/scorum-go/types"
@@ -74,11 +75,19 @@ func main() {
 func Monitor() {
 	for {
 		var recentSeq uint32
+		var prop *database.DynamicGlobalProperties
 
 		// passing -1 returns most recent history item
 		recent, err := client.AccountHistory.GetAccountHistory(paymentAccount, -1, 0)
 		if err != nil {
 			log.Printf("failed to get recent account history: %s\n", err)
+			goto Step
+		}
+
+		// to retrieve LastIrreversibleBlockNum
+		prop, err = client.Database.GetDynamicGlobalProperties()
+		if err != nil {
+			log.Printf("failed to get dynamic global properties: %s\n", err)
 			goto Step
 		}
 
@@ -97,7 +106,19 @@ func Monitor() {
 			}
 
 			mutex.Lock()
-			processHistory(history)
+			// sort seq keys
+			keys := sortHistorySeq(history)
+			for _, key := range keys {
+				operations := history[key]
+				// check that the block is irreversible
+				if operations.BlockNumber > prop.LastIrreversibleBlockNum {
+					// if not, stop processing and the preserve sequence number
+					seq = key
+					mutex.Unlock()
+					goto Step
+				}
+				traverseOperations(operations)
+			}
 			seq = recentSeq
 			mutex.Unlock()
 		}
@@ -107,8 +128,8 @@ func Monitor() {
 	}
 }
 
-func processHistory(history account_history.AccountHistory) {
-	// order keys (seq numbers), to process transaction in chronological order
+// order keys (seq numbers), to process transaction in chronological order
+func sortHistorySeq(history account_history.AccountHistory) []uint32 {
 	keys := make([]uint32, len(history))
 	index := 0
 	for k := range history {
@@ -118,23 +139,22 @@ func processHistory(history account_history.AccountHistory) {
 	sort.Slice(keys, func(i, j int) bool {
 		return keys[j] > keys[i]
 	})
+	return keys
+}
 
-	// process the transfers
-	for _, seq := range keys {
-		trx := history[seq]
-		for _, op := range trx.Operations {
-			switch body := op.(type) {
-			case *types.TransferOperation:
-				log.Printf("transfer: %+v\n", op)
-				processTransfer(seq, trx, body)
-			default:
-				log.Printf("operation %s: %+v\n", op.Type(), op)
-			}
+func traverseOperations(trx *types.OperationObject) {
+	for _, op := range trx.Operations {
+		switch body := op.(type) {
+		case *types.TransferOperation:
+			log.Printf("transfer: %+v\n", op)
+			makeTransfer(seq, trx, body)
+		default:
+			log.Printf("operation %s: %+v\n", op.Type(), op)
 		}
 	}
 }
 
-func processTransfer(seq uint32, trx *types.OperationObject, op *types.TransferOperation) {
+func makeTransfer(seq uint32, trx *types.OperationObject, op *types.TransferOperation) {
 	// transaction memo is a deposit
 	depositID := op.Memo
 	deposit, ok := deposits[depositID]
