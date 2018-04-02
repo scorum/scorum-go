@@ -2,8 +2,11 @@ title Monitor transfers
 loop monitor
 Monitor->Scorumd: /get_account_history(account, -1)
 Scorumd->Monitor: one most recent transaction
+Monitor->Scorumd: /get_dynamic_global_properties
+Scorumd->Monitor: last irreversible block number
 Monitor->Scorumd: /get_account_history(account, diff)
-Scorumd->Monitor: transactions processed within 10 seconds
+Scorumd->Monitor: transactions processed within diff
+Monitor->Monitor: take only transaction created in block \n <= last irreversible block number
 Monitor->Monitor: filter only Trasfer operations
 Monitor->Monitor: update deposit accounts
 Monitor->Monitor: sleep 10 seconds

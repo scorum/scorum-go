@@ -4,7 +4,7 @@ Scorumd->Client: block_num
 loop wait for irreversible block
 Client->Scorumd: /get_dynamic_global_properties
 Scorumd->Client: last irreversible block_num
-Client->Client: compare block_num and last irreversible block_num
+Client->Client: compare block_num and last irreversible block number
 Client->Scorumd:get_ops_in_block(block_num)
 Scorumd->Client: operations
 Client->Client: find transaction in operations
