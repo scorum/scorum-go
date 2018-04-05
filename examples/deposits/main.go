@@ -79,7 +79,7 @@ func Monitor() {
 		var prop *database.DynamicGlobalProperties
 
 		// passing -1 returns most recent history item
-		recent, err := client.AccountHistory.GetAccountHistory(paymentAccount, -1, 0)
+		recent, err := client.AccountHistory.GetAccountHistory(paymentAccount, -1, 1)
 		if err != nil {
 			log.Printf("failed to get recent account history: %s\n", err)
 			goto Step
@@ -98,7 +98,7 @@ func Monitor() {
 		}
 
 		if recentSeq > seq {
-			limit := recentSeq - seq - 1
+			limit := recentSeq - seq
 			// retrieve transactions created since the last step
 			history, err := client.AccountHistory.GetAccountHistory(paymentAccount, int32(recentSeq), int32(limit))
 			if err != nil {

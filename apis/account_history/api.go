@@ -20,7 +20,7 @@ func (api *API) call(method string, args []interface{}, reply interface{}) error
 // Account operations have sequence numbers from 0 to N where N is the most recent operation. This method
 // returns operations in the range [from-limit, from]
 // from - the absolute sequence number, -1 means most recent, limit is the number of operations before from.
-// limit - the maximum number of items that can be queried (0 to 1000], must be less than from
+// limit - the maximum number of items that can be queried [1 to 1000], must be less than from
 func (api *API) GetAccountHistory(name string, from, limit int32) (AccountHistory, error) {
 	resp := make(AccountHistory, 0)
 	err := api.call("get_account_history", []interface{}{name, from, limit}, &resp)
