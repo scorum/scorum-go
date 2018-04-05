@@ -31,7 +31,7 @@ var opTypes = []OpType{
 	AccountWitnessVoteOpType,
 	AccountWitnessProxyOpType,
 	DeleteCommentOpType,
-	CommentOptions,
+	CommentOptionsOpType,
 	SetWithdrawScorumpowerRouteToAccount,
 	SetWithdrawScorumpowerRouteToDevPool,
 	ProveAuthority,
@@ -58,7 +58,7 @@ var opTypes = []OpType{
 	CurationReward,
 	FillScorumpowerWithdraw,
 	Hardfork,
-	ProducerRewardOperation,
+	ProducerRewardOpType,
 	ReturnScorumpowerDelegation,
 	ShutdownWitness,
 }
@@ -77,7 +77,7 @@ const (
 	AccountWitnessVoteOpType             OpType = "account_witness_vote"
 	AccountWitnessProxyOpType            OpType = "account_witness_proxy"
 	DeleteCommentOpType                  OpType = "delete_comment"
-	CommentOptions                       OpType = "comment_options"
+	CommentOptionsOpType                 OpType = "comment_options"
 	SetWithdrawScorumpowerRouteToAccount OpType = "set_withdraw_scorumpower_route_to_account"
 	SetWithdrawScorumpowerRouteToDevPool OpType = "set_withdraw_scorumpower_route_to_dev_pool"
 	ProveAuthority                       OpType = "prove_authority"
@@ -104,7 +104,7 @@ const (
 	CurationReward                       OpType = "curation_reward"
 	FillScorumpowerWithdraw              OpType = "fill_scorumpower_withdraw"
 	Hardfork                             OpType = "hardfork"
-	ProducerRewardOperation              OpType = "producer_reward_operation"
+	ProducerRewardOpType                 OpType = "producer_reward"
 	ReturnScorumpowerDelegation          OpType = "return_scorumpower_delegation"
 	ShutdownWitness                      OpType = "shutdown_witness"
 )

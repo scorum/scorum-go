@@ -98,7 +98,7 @@ func (t *OperationsFlat) UnmarshalJSON(b []byte) (err error) {
 		if err := json.Unmarshal(o[i], &key); err != nil {
 			return err
 		}
-		val, err := unmarshalOperation(key, o[1])
+		val, err := unmarshalOperation(key, o[i+1])
 		if err != nil {
 			return err
 		}
@@ -134,6 +134,10 @@ var knownOperations = map[OpType]reflect.Type{
 	AccountCreateByCommitteeOpType:    reflect.TypeOf(AccountCreateByCommitteeOperation{}),
 	AccountCreateWithDelegationOpType: reflect.TypeOf(AccountCreateWithDelegationOperation{}),
 	TransferOpType:                    reflect.TypeOf(TransferOperation{}),
+	ProducerRewardOpType:              reflect.TypeOf(ProducerRewardOperation{}),
+	CommentOptionsOpType:              reflect.TypeOf(CommentOptionsOperation{}),
+	CommentOpType:                     reflect.TypeOf(CommentOperation{}),
+	DeleteCommentOpType:               reflect.TypeOf(DeleteCommentOperation{}),
 }
 
 // UnknownOperation
@@ -277,4 +281,58 @@ func (op *VoteOperation) MarshalTransaction(encoder *transaction.Encoder) error 
 	enc.Encode(op.Permlink)
 	enc.Encode(op.Weight)
 	return enc.Err()
+}
+
+// CommentOperation represents either a new post or a comment.
+// In case Title is filled in and ParentAuthor is empty, it is a new post.
+// The post category can be read from ParentPermlink.
+type CommentOperation struct {
+	ParentAuthor   string `json:"parent_author"`
+	ParentPermlink string `json:"parent_permlink"`
+	Author         string `json:"author"`
+	Permlink       string `json:"permlink"`
+	Title          string `json:"title"`
+	Body           string `json:"body"`
+	JsonMetadata   string `json:"json_metadata"`
+}
+
+func (op *CommentOperation) Type() OpType {
+	return CommentOpType
+}
+
+type DeleteCommentOperation struct {
+	Author   string `json:"author"`
+	Permlink string `json:"permlink"`
+}
+
+func (op *DeleteCommentOperation) Type() OpType {
+	return DeleteCommentOpType
+}
+
+// Authors of posts may not want all of the benefits that come from creating a post. This
+// operation allows authors to update properties associated with their post.
+//
+// The max_accepted_payout may be decreased, but never increased.
+// The percent_scrs may be decreased, but never increased
+type CommentOptionsOperation struct {
+	Author               string        `json:"author"`
+	Permlink             string        `json:"permlink"`
+	MaxAcceptedPayout    string        `json:"max_accepted_payout"`
+	PercentSCRs          uint16        `json:"percent_scrs"`
+	AllowVotes           bool          `json:"allow_votes"`
+	AllowCurationRewards bool          `json:"allow_curation_rewards"`
+	Extensions           []interface{} `json:"extensions"`
+}
+
+func (op *CommentOptionsOperation) Type() OpType {
+	return CommentOptionsOpType
+}
+
+type ProducerRewardOperation struct {
+	Producer    string `json:"producer"`
+	Scorumpower string `json:"scorumpower"`
+}
+
+func (op *ProducerRewardOperation) Type() OpType {
+	return ProducerRewardOpType
 }

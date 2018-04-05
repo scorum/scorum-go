@@ -12,6 +12,7 @@ import (
 
 	"github.com/scorum/scorum-go"
 	"github.com/scorum/scorum-go/apis/account_history"
+	"github.com/scorum/scorum-go/apis/blockchain_history"
 	"github.com/scorum/scorum-go/apis/database"
 	"github.com/scorum/scorum-go/sign"
 	"github.com/scorum/scorum-go/transport/http"
@@ -236,7 +237,7 @@ func transfer(deposit *Deposit, amount types.Asset) {
 
 			if resp.BlockNum > prop.LastIrreversibleBlockNum {
 				// get operation in block
-				trx, err := client.Database.GetOperationsInBlock(resp.BlockNum, false)
+				trx, err := client.BlockchainHistory.GetOperationsInBlock(resp.BlockNum, blockchain_history.AllOp)
 				if err != nil {
 					log.Printf("failed to get operations in a block %d: %s\n", resp.BlockNum, err)
 					goto Step

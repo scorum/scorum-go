@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/scorum/scorum-go/apis/blockchain_history"
 	"github.com/scorum/scorum-go/apis/database"
 	"github.com/scorum/scorum-go/sign"
 	rpc "github.com/scorum/scorum-go/transport"
@@ -99,11 +100,13 @@ func TestGetOperationsInBlock(t *testing.T) {
 	client := newWebsocketClient(t)
 	defer client.Close()
 
-	ops, err := client.Database.GetOperationsInBlock(uint32(127), false)
+	ops, err := client.BlockchainHistory.GetOperationsInBlock(uint32(127), blockchain_history.AllOp)
 	require.NoError(t, err)
 	require.Len(t, ops, 2)
-	require.Len(t, ops[0].Operations, 1)
-	require.Len(t, ops[1].Operations, 1)
+
+	for _, op := range ops {
+		require.True(t, len(op.Operations) > 0)
+	}
 }
 
 func TestGetAccounts(t *testing.T) {
@@ -119,8 +122,7 @@ func TestGetAccounts(t *testing.T) {
 }
 
 func TestGetAccountHistory(t *testing.T) {
-	transport := http.NewTransport(nodeHTTPS)
-	client := NewClient(transport)
+	client := newHTTPClient()
 
 	history, err := client.AccountHistory.GetAccountHistory("scorumwitness1", 317, 20)
 	require.NoError(t, err)
@@ -132,8 +134,7 @@ func TestGetAccountHistory(t *testing.T) {
 }
 
 func TestClient_Broadcast_AccountWitnessVoteOperation(t *testing.T) {
-	transport := http.NewTransport(nodeHTTPS)
-	client := NewClient(transport)
+	client := newHTTPClient()
 
 	roselle := "5JwWJ2m2jGG9RPcpDix5AvkDzQZJoZvpUQScsDzzXWAKMs8Q6jH"
 	_, err := client.Broadcast(sign.TestChain, []string{roselle}, &types.AccountWitnessVoteOperation{
@@ -150,8 +151,7 @@ func TestClient_Broadcast_AccountWitnessVoteOperation(t *testing.T) {
 }
 
 func TestClient_Broadcast_Transfer(t *testing.T) {
-	transport := http.NewTransport(nodeHTTPS)
-	client := NewClient(transport)
+	client := newHTTPClient()
 
 	amount, _ := types.AssetFromString("0.0000001 SCR")
 
@@ -180,4 +180,29 @@ func TestSetBlockAppliedCallback(t *testing.T) {
 	require.NoError(t, err)
 	time.Sleep(10 * time.Second)
 	require.True(t, called)
+}
+
+func TestCommentOperation(t *testing.T) {
+	client := newHTTPClient()
+
+	history, err := client.BlockchainHistory.GetOperationsInBlock(254304, blockchain_history.AllOp)
+	require.NoError(t, err)
+
+	require.Len(t, history, 3)
+
+	var commentOp *types.CommentOperation
+	for _, trx := range history {
+		for _, op := range trx.Operations {
+			switch body := op.(type) {
+			case *types.CommentOperation:
+				commentOp = body
+				break
+			}
+		}
+	}
+
+	require.NotNil(t, commentOp, "there is no comment operation")
+	require.Equal(t, "football", commentOp.ParentPermlink)
+	require.Equal(t, "best-madrid-players", commentOp.Permlink)
+	require.Equal(t, "Best Madrid players", commentOp.Title)
 }

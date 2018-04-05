@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 
 	"github.com/scorum/scorum-go/caller"
-	"github.com/scorum/scorum-go/types"
 )
 
 const APIID = "database_api"
@@ -63,13 +62,6 @@ func (api *API) GetBlock(blockNum uint32) (*Block, error) {
 	var resp Block
 	err := api.call("get_block", []interface{}{blockNum}, &resp)
 	return &resp, err
-}
-
-// Get sequence of operations included/generated within a particular block
-func (api *API) GetOperationsInBlock(blockNum uint32, onlyVirtual bool) ([]*types.OperationObject, error) {
-	var resp []*types.OperationObject
-	err := api.call("get_ops_in_block", []interface{}{blockNum, onlyVirtual}, &resp)
-	return resp, err
 }
 
 // Set callback to invoke as soon as a new block is applied
