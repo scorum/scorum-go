@@ -114,7 +114,7 @@ func Monitor() {
 				// check that the block is irreversible
 				if operations.BlockNumber > prop.LastIrreversibleBlockNum {
 					// if not, stop processing and the preserve sequence number
-					seq = key
+					seq = key - 1
 					mutex.Unlock()
 					goto Step
 				}
