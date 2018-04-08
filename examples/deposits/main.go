@@ -148,7 +148,11 @@ func traverseOperations(trx *types.OperationObject) {
 		switch body := op.(type) {
 		case *types.TransferOperation:
 			log.Printf("transfer: %+v\n", op)
-			makeTransfer(seq, trx, body)
+			//transfer operation specified for both `in` and `out` transfers,
+			//filter only `in`
+			if body.To == paymentAccount {
+				makeTransfer(seq, trx, body)
+			}
 		default:
 			log.Printf("operation %s: %+v\n", op.Type(), op)
 		}

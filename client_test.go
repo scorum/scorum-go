@@ -153,14 +153,14 @@ func TestClient_Broadcast_AccountWitnessVoteOperation(t *testing.T) {
 func TestClient_Broadcast_Transfer(t *testing.T) {
 	client := newHTTPClient()
 
-	amount, _ := types.AssetFromString("0.0000001 SCR")
+	amount, _ := types.AssetFromString("0.000009 SCR")
 
-	kristie := "5Jr5QevLsA2SZfDT8WcMddnL7BVzd7yGq6PZrLHJ68ZLqDQndDn"
+	kristie := "5J7FEcpqc1sZ7ZbKx2kVvBHx2oTjWG2wMU2e2FYX85sGA2qu8KT"
 	resp, err := client.Broadcast(sign.TestChain, []string{kristie}, &types.TransferOperation{
-		From:   "kristie",
-		To:     "roselle",
+		From:   "azucena",
+		To:     "leonarda",
 		Amount: *amount,
-		Memo:   "dep2",
+		Memo:   "1",
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, resp.ID)
