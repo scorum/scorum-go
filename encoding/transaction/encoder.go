@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/pkg/errors"
+	"math"
 )
 
 type Encoder struct {
@@ -90,8 +91,16 @@ func (encoder *Encoder) EncodeMoney(s string) error {
 	r, _ := regexp.Compile("^[0-9]+\\.?[0-9]* [A-Za-z0-9]+$")
 	if r.MatchString(s) {
 		asset := strings.Split(s, " ")
-		amm, _ := strconv.ParseInt(strings.Replace(asset[0], ".", "", -1), 10, 64)
 		ind := strings.Index(asset[0], ".")
+		if ind != -1 {
+			asset[0] = strings.TrimRight(asset[0], "0")
+		}
+		amm, _ := strconv.ParseInt(strings.Replace(asset[0], ".", "", -1), 10, 64)
+
+		if amm == math.MaxInt64 {
+			return errors.Errorf("encoder: value cannot be equal or greater than %d", math.MaxInt64)
+		}
+
 		var perc int
 		if ind == -1 {
 			perc = 0
