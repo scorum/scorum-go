@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/scorum/scorum-go/apis/account_history"
 	"github.com/scorum/scorum-go/apis/blockchain_history"
+	"github.com/scorum/scorum-go/apis/chain"
 	"github.com/scorum/scorum-go/apis/database"
 	"github.com/scorum/scorum-go/apis/network_broadcast"
 	"github.com/scorum/scorum-go/caller"
@@ -31,12 +32,16 @@ type Client struct {
 
 	// BlockchainHistory represents blockchain_history_api
 	BlockchainHistory *blockchain_history.API
+
+	// Chain represents chain_api
+	Chain *chain.API
 }
 
 // NewClient creates a new RPC client that use the given CallCloser internally.
 func NewClient(cc caller.CallCloser) *Client {
 	client := &Client{cc: cc}
 	client.Database = database.NewAPI(client.cc)
+	client.Chain = chain.NewAPI(client.cc)
 	client.AccountHistory = account_history.NewAPI(client.cc)
 	client.NetworkBroadcast = network_broadcast.NewAPI(client.cc)
 	client.BlockchainHistory = blockchain_history.NewAPI(client.cc)

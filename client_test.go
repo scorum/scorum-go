@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/scorum/scorum-go/apis/blockchain_history"
 	"github.com/scorum/scorum-go/apis/database"
 	"github.com/scorum/scorum-go/sign"
@@ -53,12 +54,15 @@ func TestGetConfigViaWS(t *testing.T) {
 }
 
 func TestGetChainProperties(t *testing.T) {
-	client := newWebsocketClient(t)
-	defer client.Close()
+	const url = "http://testnet.scorum.com:8005"
+	transport := http.NewTransport(url)
+	client := NewClient(transport)
 
-	props, err := client.Database.GetChainProperties()
+	props, err := client.Chain.GetChainProperties()
 	require.NoError(t, err)
-	require.True(t, props.MaximumBlockSize != 0)
+	require.NotEmpty(t, props.ChainID)
+	require.True(t, props.HeadBlockNumber > 0)
+	require.True(t, props.LastIrreversibleBlockNumber > 0)
 
 	t.Logf("%+v", props)
 }
@@ -124,13 +128,21 @@ func TestGetAccounts(t *testing.T) {
 func TestGetAccountHistory(t *testing.T) {
 	client := newHTTPClient()
 
-	history, err := client.AccountHistory.GetAccountHistory("scorumwitness1", 317, 20)
+	history, err := client.AccountHistory.GetAccountHistory("leonarda", -1, 3)
 	require.NoError(t, err)
 	require.True(t, len(history) > 0)
+	spew.Dump(history)
+}
 
-	for idx, item := range history {
-		t.Logf("%d %v\n", idx, item)
-	}
+func TestGetAccountScrToScrTransfers(t *testing.T) {
+	const url = "http://testnet.scorum.com:8005"
+	transport := http.NewTransport(url)
+	client := NewClient(transport)
+
+	history, err := client.AccountHistory.GetAccountScrToScrTransfers("leonarda", -1, 3)
+	require.NoError(t, err)
+	require.True(t, len(history) > 0)
+	spew.Dump(history)
 }
 
 func TestClient_Broadcast_AccountWitnessVoteOperation(t *testing.T) {
@@ -152,11 +164,10 @@ func TestClient_Broadcast_AccountWitnessVoteOperation(t *testing.T) {
 
 func TestClient_Broadcast_Transfer(t *testing.T) {
 	client := newHTTPClient()
-
 	amount, _ := types.AssetFromString("0.000009 SCR")
 
-	kristie := "5J7FEcpqc1sZ7ZbKx2kVvBHx2oTjWG2wMU2e2FYX85sGA2qu8KT"
-	resp, err := client.Broadcast(sign.TestChain, []string{kristie}, &types.TransferOperation{
+	azucena := "5J7FEcpqc1sZ7ZbKx2kVvBHx2oTjWG2wMU2e2FYX85sGA2qu8KT"
+	resp, err := client.Broadcast(sign.TestChain, []string{azucena}, &types.TransferOperation{
 		From:   "azucena",
 		To:     "leonarda",
 		Amount: *amount,
