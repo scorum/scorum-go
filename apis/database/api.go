@@ -30,13 +30,6 @@ func (api *API) GetConfig() (*Config, error) {
 	return &config, err
 }
 
-// Get chain properties
-func (api *API) GetChainProperties() (*ChainProperties, error) {
-	var resp ChainProperties
-	err := api.call("get_chain_properties", caller.EmptyParams, &resp)
-	return &resp, err
-}
-
 func (api *API) GetDynamicGlobalProperties() (*DynamicGlobalProperties, error) {
 	var resp DynamicGlobalProperties
 	err := api.call("get_dynamic_global_properties", caller.EmptyParams, &resp)

@@ -2,10 +2,10 @@ title Broadcast transfers
 Client->Scorumd: /broadcast_transaction_synchronous(transaction)
 Scorumd->Client: block_num
 loop wait for irreversible block
-Client->Scorumd: /get_dynamic_global_properties
+Client->Scorumd: /get_chain_properties
 Scorumd->Client: last irreversible block_num
 Client->Client: compare block_num and last irreversible block number
-Client->Scorumd:get_ops_in_block(block_num)
+Client->Scorumd:get_ops_in_block(block_num, market)
 Scorumd->Client: operations
 Client->Client: find transaction in operations
 end

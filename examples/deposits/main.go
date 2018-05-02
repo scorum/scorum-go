@@ -13,7 +13,7 @@ import (
 	"github.com/scorum/scorum-go"
 	"github.com/scorum/scorum-go/apis/account_history"
 	"github.com/scorum/scorum-go/apis/blockchain_history"
-	"github.com/scorum/scorum-go/apis/database"
+	"github.com/scorum/scorum-go/apis/chain"
 	"github.com/scorum/scorum-go/sign"
 	"github.com/scorum/scorum-go/transport/http"
 	"github.com/scorum/scorum-go/types"
@@ -25,8 +25,6 @@ const (
 	paymentAccount = "roselle"
 	paymentWIF     = "5JwWJ2m2jGG9RPcpDix5AvkDzQZJoZvpUQScsDzzXWAKMs8Q6jH"
 )
-
-var chain = sign.TestChain
 
 var (
 	// deposits indexed with their ids
@@ -76,17 +74,17 @@ func main() {
 func Monitor() {
 	for {
 		var recentSeq uint32
-		var prop *database.DynamicGlobalProperties
+		var prop *chain.ChainProperties
 
 		// passing -1 returns most recent history item
-		recent, err := client.AccountHistory.GetAccountHistory(paymentAccount, -1, 1)
+		recent, err := client.AccountHistory.GetAccountScrToScrTransfers(paymentAccount, -1, 1)
 		if err != nil {
 			log.Printf("failed to get recent account history: %s\n", err)
 			goto Step
 		}
 
 		// to retrieve LastIrreversibleBlockNum
-		prop, err = client.Database.GetDynamicGlobalProperties()
+		prop, err = client.Chain.GetChainProperties()
 		if err != nil {
 			log.Printf("failed to get dynamic global properties: %s\n", err)
 			goto Step
@@ -100,7 +98,7 @@ func Monitor() {
 		if recentSeq > seq {
 			limit := recentSeq - seq
 			// retrieve transactions created since the last step
-			history, err := client.AccountHistory.GetAccountHistory(paymentAccount, int32(recentSeq), int32(limit))
+			history, err := client.AccountHistory.GetAccountScrToScrTransfers(paymentAccount, int32(recentSeq), int32(limit))
 			if err != nil {
 				log.Printf("failed to get recent account history: %s\n", err)
 				goto Step
@@ -110,15 +108,21 @@ func Monitor() {
 			// sort seq keys
 			keys := sortHistorySeq(history)
 			for _, key := range keys {
-				operations := history[key]
+				historyItem := history[key]
 				// check that the block is irreversible
-				if operations.BlockNumber > prop.LastIrreversibleBlockNum {
-					// if not, stop processing and the preserve sequence number
+				if historyItem.BlockNumber > prop.LastIrreversibleBlockNumber {
+					// if not, stop processing and preserve the sequence number
 					seq = key - 1
 					mutex.Unlock()
 					goto Step
 				}
-				traverseOperations(operations)
+
+				for _, op := range historyItem.Operations {
+					body := op.(*types.TransferOperation)
+					if body.To == paymentAccount {
+						acceptTransfer(seq, historyItem, body)
+					}
+				}
 			}
 			seq = recentSeq
 			mutex.Unlock()
@@ -143,23 +147,7 @@ func sortHistorySeq(history account_history.AccountHistory) []uint32 {
 	return keys
 }
 
-func traverseOperations(trx *types.OperationObject) {
-	for _, op := range trx.Operations {
-		switch body := op.(type) {
-		case *types.TransferOperation:
-			log.Printf("transfer: %+v\n", op)
-			//transfer operation specified for both `in` and `out` transfers,
-			//filter only `in`
-			if body.To == paymentAccount {
-				makeTransfer(seq, trx, body)
-			}
-		default:
-			log.Printf("operation %s: %+v\n", op.Type(), op)
-		}
-	}
-}
-
-func makeTransfer(seq uint32, trx *types.OperationObject, op *types.TransferOperation) {
+func acceptTransfer(seq uint32, trx *types.OperationObject, op *types.TransferOperation) {
 	// transaction memo is a deposit
 	depositID := op.Memo
 	deposit, ok := deposits[depositID]
@@ -225,7 +213,7 @@ func transfer(deposit *Deposit, amount types.Asset) {
 	}
 
 	// broadcast the transfer operation
-	resp, err := client.Broadcast(chain, []string{paymentWIF}, &transferOp)
+	resp, err := client.Broadcast(sign.TestChain, []string{paymentWIF}, &transferOp)
 	if err != nil {
 		log.Printf("failed to transfer %s to %s: %v", amount, deposit, err)
 		revertBalance()
@@ -233,15 +221,15 @@ func transfer(deposit *Deposit, amount types.Asset) {
 	} else {
 		// run a loop to make sure that the transaction is irreversible
 		for {
-			prop, err := client.Database.GetDynamicGlobalProperties()
+			prop, err := client.Chain.GetChainProperties()
 			if err != nil {
 				log.Printf("failed to get dynamic global properties: %s\n", err)
 				goto Step
 			}
 
-			if resp.BlockNum > prop.LastIrreversibleBlockNum {
+			if resp.BlockNum > prop.LastIrreversibleBlockNumber {
 				// get operation in block
-				trx, err := client.BlockchainHistory.GetOperationsInBlock(resp.BlockNum, blockchain_history.AllOp)
+				trx, err := client.BlockchainHistory.GetOperationsInBlock(resp.BlockNum, blockchain_history.MarketOp)
 				if err != nil {
 					log.Printf("failed to get operations in a block %d: %s\n", resp.BlockNum, err)
 					goto Step

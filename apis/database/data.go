@@ -210,11 +210,6 @@ type Account struct {
 	GuestBloggers             []json.RawMessage `json:"guest_bloggers"`
 }
 
-type ChainProperties struct {
-	MaximumBlockSize   int32  `json:"maximum_block_size"`
-	AccountCreationFee string `json:"account_creation_fee"`
-}
-
 type Block struct {
 	Previous              string              `json:"previous"`
 	BlockID               string              `json:"block_id"`
