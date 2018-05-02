@@ -5,7 +5,6 @@ The example represent a deposits system and consists of two main parts:
 * Incoming transfers monitor
   * Pull history operations each 10 seconds
   * Take only operations created in blocks with number <= LastIrreversibleBlockNum
-  * Sort the operations and filters only transfers
   * Increase deposits balances with the transferred amounts
 
 * Payout
