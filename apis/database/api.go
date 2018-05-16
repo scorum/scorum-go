@@ -50,6 +50,22 @@ func (api *API) GetAccounts(names ...string) ([]*Account, error) {
 	return resp, err
 }
 
+// GetAccountsCount returns account count
+func (api *API) GetAccountsCount() (int, error) {
+	var resp int
+	err := api.call("get_account_count", caller.EmptyParams, &resp)
+	return resp, err
+}
+
+// LookupAccounts get names and IDs for registered accounts.
+// lowerBoundName Lower bound of the first name to return.
+// limit Maximum number of results to return -- must not exceed 1000
+func (api *API) LookupAccounts(lowerBoundName string, limit uint16) ([]string, error) {
+	var resp []string
+	err := api.call("lookup_accounts", []interface{}{lowerBoundName, limit}, &resp)
+	return resp, err
+}
+
 // Get a full signed block by the given block number
 func (api *API) GetBlock(blockNum uint32) (*Block, error) {
 	var resp Block
