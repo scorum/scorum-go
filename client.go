@@ -61,7 +61,7 @@ func (client *Client) Broadcast(chain *sign.Chain, wifs []string, operations ...
 		return nil, errors.Wrap(err, "failed to get dynamic global properties")
 	}
 
-	block, err := client.Database.GetBlock(props.LastIrreversibleBlockNum)
+	block, err := client.BlockchainHistory.GetBlock(props.LastIrreversibleBlockNum)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get block")
 	}
