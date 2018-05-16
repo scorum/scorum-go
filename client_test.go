@@ -6,7 +6,6 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/scorum/scorum-go/apis/blockchain_history"
-	"github.com/scorum/scorum-go/apis/database"
 	"github.com/scorum/scorum-go/sign"
 	rpc "github.com/scorum/scorum-go/transport"
 	"github.com/scorum/scorum-go/transport/http"
@@ -74,30 +73,6 @@ func TestGetDynamicGlobalProperties(t *testing.T) {
 	config, err := client.Database.GetDynamicGlobalProperties()
 	require.NoError(t, err)
 	t.Logf("dynamic properties: %+v", config)
-}
-
-func TestGetBlockHeader(t *testing.T) {
-	client := newWebsocketClient(t)
-	defer client.Close()
-
-	block, err := client.Database.GetBlockHeader(24)
-	require.NoError(t, err)
-
-	require.NotEmpty(t, block.Previous)
-	require.NotEmpty(t, block.Witness)
-}
-
-func TestGetBlock(t *testing.T) {
-	client := newWebsocketClient(t)
-	defer client.Close()
-
-	block, err := client.Database.GetBlock(uint32(50))
-	require.NoError(t, err)
-
-	require.NotEmpty(t, block.Previous)
-	require.NotEmpty(t, "00000032cfc128aff54138d97d183c416a352ec7", block.BlockID)
-	require.Equal(t, "scorumwitness14", block.Witness)
-	t.Logf("block: %+v", block)
 }
 
 func TestGetOperationsInBlock(t *testing.T) {
@@ -184,7 +159,7 @@ func TestSetBlockAppliedCallback(t *testing.T) {
 	defer client.Close()
 
 	var called bool
-	err := client.Database.SetBlockAppliedCallback(func(block *database.BlockHeader, err error) {
+	err := client.Database.SetBlockAppliedCallback(func(block *types.BlockHeader, err error) {
 		t.Log("block:", block, "error", err)
 		called = true
 	})

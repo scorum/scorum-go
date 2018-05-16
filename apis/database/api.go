@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/scorum/scorum-go/caller"
+	"github.com/scorum/scorum-go/types"
 )
 
 const APIID = "database_api"
@@ -36,13 +37,6 @@ func (api *API) GetDynamicGlobalProperties() (*DynamicGlobalProperties, error) {
 	return &resp, err
 }
 
-// Get block header by the given block number
-func (api *API) GetBlockHeader(blockNum int32) (*BlockHeader, error) {
-	var resp BlockHeader
-	err := api.call("get_block_header", []interface{}{blockNum}, &resp)
-	return &resp, err
-}
-
 // Get accounts by the provided names
 func (api *API) GetAccounts(names ...string) ([]*Account, error) {
 	var resp []*Account
@@ -66,17 +60,10 @@ func (api *API) LookupAccounts(lowerBoundName string, limit uint16) ([]string, e
 	return resp, err
 }
 
-// Get a full signed block by the given block number
-func (api *API) GetBlock(blockNum uint32) (*Block, error) {
-	var resp Block
-	err := api.call("get_block", []interface{}{blockNum}, &resp)
-	return &resp, err
-}
-
 // Set callback to invoke as soon as a new block is applied
-func (api *API) SetBlockAppliedCallback(notice func(header *BlockHeader, error error)) (err error) {
+func (api *API) SetBlockAppliedCallback(notice func(header *types.BlockHeader, error error)) (err error) {
 	err = api.setCallback("set_block_applied_callback", func(raw json.RawMessage) {
-		var header []BlockHeader
+		var header []types.BlockHeader
 		if err := json.Unmarshal(raw, &header); err != nil {
 			notice(nil, err)
 		}
