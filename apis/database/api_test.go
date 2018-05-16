@@ -18,6 +18,15 @@ func TestGetAccountsCount(t *testing.T) {
 	require.True(t, count > 0)
 }
 
+func TestGetConfig(t *testing.T) {
+	transport := http.NewTransport(nodeHTTPS)
+	api := NewAPI(transport)
+
+	config, err := api.GetConfig()
+	require.NoError(t, err)
+	require.Equal(t, "SCR", config.ScorumAddressPrefix)
+}
+
 func TestLookupAccounts(t *testing.T) {
 	transport := http.NewTransport(nodeHTTPS)
 	api := NewAPI(transport)

@@ -34,15 +34,6 @@ func newHTTPClient() *Client {
 	return client
 }
 
-func TestGetConfigViaHttp(t *testing.T) {
-	client := newHTTPClient()
-	defer client.Close()
-
-	config, err := client.Database.GetConfig()
-	require.NoError(t, err)
-	require.Equal(t, "SCR", config.ScorumAddressPrefix)
-}
-
 func TestGetConfigViaWS(t *testing.T) {
 	client := newWebsocketClient(t)
 	defer client.Close()
@@ -50,20 +41,6 @@ func TestGetConfigViaWS(t *testing.T) {
 	config, err := client.Database.GetConfig()
 	require.NoError(t, err)
 	require.Equal(t, "SCR", config.ScorumAddressPrefix)
-}
-
-func TestGetChainProperties(t *testing.T) {
-	const url = "http://testnet.scorum.com:8005"
-	transport := http.NewTransport(url)
-	client := NewClient(transport)
-
-	props, err := client.Chain.GetChainProperties()
-	require.NoError(t, err)
-	require.NotEmpty(t, props.ChainID)
-	require.True(t, props.HeadBlockNumber > 0)
-	require.True(t, props.LastIrreversibleBlockNumber > 0)
-
-	t.Logf("%+v", props)
 }
 
 func TestGetDynamicGlobalProperties(t *testing.T) {
@@ -104,17 +81,6 @@ func TestGetAccountHistory(t *testing.T) {
 	client := newHTTPClient()
 
 	history, err := client.AccountHistory.GetAccountHistory("leonarda", -1, 3)
-	require.NoError(t, err)
-	require.True(t, len(history) > 0)
-	spew.Dump(history)
-}
-
-func TestGetAccountScrToScrTransfers(t *testing.T) {
-	const url = "http://testnet.scorum.com:8005"
-	transport := http.NewTransport(url)
-	client := NewClient(transport)
-
-	history, err := client.AccountHistory.GetAccountScrToScrTransfers("leonarda", -1, 3)
 	require.NoError(t, err)
 	require.True(t, len(history) > 0)
 	spew.Dump(history)
@@ -166,29 +132,4 @@ func TestSetBlockAppliedCallback(t *testing.T) {
 	require.NoError(t, err)
 	time.Sleep(10 * time.Second)
 	require.True(t, called)
-}
-
-func TestCommentOperation(t *testing.T) {
-	client := newHTTPClient()
-
-	history, err := client.BlockchainHistory.GetOperationsInBlock(254304, blockchain_history.AllOp)
-	require.NoError(t, err)
-
-	require.Len(t, history, 3)
-
-	var commentOp *types.CommentOperation
-	for _, trx := range history {
-		for _, op := range trx.Operations {
-			switch body := op.(type) {
-			case *types.CommentOperation:
-				commentOp = body
-				break
-			}
-		}
-	}
-
-	require.NotNil(t, commentOp, "there is no comment operation")
-	require.Equal(t, "football", commentOp.ParentPermlink)
-	require.Equal(t, "best-madrid-players", commentOp.Permlink)
-	require.Equal(t, "Best Madrid players", commentOp.Title)
 }

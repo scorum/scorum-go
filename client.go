@@ -56,12 +56,12 @@ func (client *Client) Close() error {
 
 // Sign the given operations with the wifs and broadcast them as one transaction
 func (client *Client) Broadcast(chain *sign.Chain, wifs []string, operations ...types.Operation) (*network_broadcast.BroadcastResponse, error) {
-	props, err := client.Database.GetDynamicGlobalProperties()
+	props, err := client.Chain.GetChainProperties()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get dynamic global properties")
 	}
 
-	block, err := client.BlockchainHistory.GetBlock(props.LastIrreversibleBlockNum)
+	block, err := client.BlockchainHistory.GetBlock(props.LastIrreversibleBlockNumber)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get block")
 	}
@@ -73,7 +73,7 @@ func (client *Client) Broadcast(chain *sign.Chain, wifs []string, operations ...
 
 	expiration := props.Time.Add(10 * time.Minute)
 	stx := sign.NewSignedTransaction(&types.Transaction{
-		RefBlockNum:    sign.RefBlockNum(props.LastIrreversibleBlockNum - 1&0xffff),
+		RefBlockNum:    sign.RefBlockNum(props.LastIrreversibleBlockNumber - 1&0xffff),
 		RefBlockPrefix: refBlockPrefix,
 		Expiration:     &types.Time{Time: &expiration},
 	})

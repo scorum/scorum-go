@@ -121,7 +121,7 @@ type Config struct {
 	ScorumVestingWithdrawIntervalsPreHf16               int32  `json:"SCORUM_VESTING_WITHDRAW_INTERVALS_PRE_HF_16"`
 	ScorumVestingWithdrawIntervalSeconds                int32  `json:"SCORUM_VESTING_WITHDRAW_INTERVAL_SECONDS"`
 	ScorumVoteDustThreshold                             int32  `json:"SCORUM_VOTE_DUST_THRESHOLD"`
-	ScorumVoteRegenerationSeconds                       int32  `json:"SCORUM_VOTE_REGENERATION_SECONDS"`
+	ScorumVoteRegenerationSeconds                       string `json:"SCORUM_VOTE_REGENERATION_SECONDS"`
 	ScorumSymbol                                        int32  `json:"SCORUM_SYMBOL"`
 	VestsSymbol                                         int32  `json:"VESTS_SYMBOL"`
 	VirtualScheduleLapLength                            string `json:"VIRTUAL_SCHEDULE_LAP_LENGTH"`
