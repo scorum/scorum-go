@@ -62,7 +62,6 @@ func TestLookupAccounts(t *testing.T) {
 		count, err := api.GetAccountsCount()
 		require.NoError(t, err)
 
-		t.Log(all)
 		require.Equal(t, count, len(all))
 	})
 

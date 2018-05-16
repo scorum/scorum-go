@@ -9,19 +9,27 @@ import (
 	"net/http"
 	"sync"
 
+	"time"
+
 	"github.com/pkg/errors"
 	"github.com/scorum/scorum-go/transport"
 )
 
 type Transport struct {
-	Url string
+	Url    string
+	client http.Client
 
 	requestID uint64
 	reqMutex  sync.Mutex
 }
 
 func NewTransport(url string) *Transport {
+	timeout := time.Duration(5 * time.Second)
+
 	return &Transport{
+		client: http.Client{
+			Timeout: timeout,
+		},
 		Url: url,
 	}
 }
@@ -47,7 +55,7 @@ func (caller *Transport) Call(api string, method string, args []interface{}, rep
 		return err
 	}
 
-	resp, err := http.Post(caller.Url, "application/json", bytes.NewBuffer(reqBody))
+	resp, err := caller.client.Post(caller.Url, "application/json", bytes.NewBuffer(reqBody))
 	if err != nil {
 		return err
 	}
