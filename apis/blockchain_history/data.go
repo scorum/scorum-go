@@ -47,3 +47,43 @@ func (h *History) UnmarshalJSON(b []byte) (err error) {
 	*h = ops
 	return nil
 }
+
+type BlockHistory map[uint32]*types.Block
+
+func (bh *BlockHistory) UnmarshalJSON(b []byte) (err error) {
+	// unmarshal array
+	var blocks []json.RawMessage
+	if err := json.Unmarshal(b, &blocks); err != nil {
+		return err
+	}
+
+	bhm := make(BlockHistory, len(blocks))
+
+	// foreach block
+	for _, v := range blocks {
+		var kv []json.RawMessage
+		if err := json.Unmarshal(v, &kv); err != nil {
+			return err
+		}
+
+		if len(kv) != 2 {
+			return errors.New("invalid operation format: should be sequence number, value")
+		}
+
+		var key uint32
+		if err := json.Unmarshal(kv[0], &key); err != nil {
+			return err
+		}
+
+		var block types.Block
+		if err := json.Unmarshal(kv[1], &block); err != nil {
+			return err
+		}
+
+		bhm[key] = &block
+	}
+
+	*bh = bhm
+
+	return nil
+}
