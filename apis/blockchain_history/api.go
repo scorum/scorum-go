@@ -48,3 +48,10 @@ func (api *API) GetOperationsInBlock(blockNum uint32, opType AppliedOperationTyp
 	err := api.call("get_ops_in_block", []interface{}{blockNum, opType}, &resp)
 	return resp, err
 }
+
+// Get sequence of 'limit' blocks from offset
+func (api *API) GetBlocksHistory(blockNum uint32, limit uint32) (BlockHistory, error) {
+	var resp BlockHistory
+	err := api.call("get_blocks_history", []interface{}{blockNum, limit}, &resp)
+	return resp, err
+}

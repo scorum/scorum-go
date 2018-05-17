@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/scorum/scorum-go/apis/blockchain_history"
 	"github.com/scorum/scorum-go/sign"
 	rpc "github.com/scorum/scorum-go/transport"
 	"github.com/scorum/scorum-go/transport/http"
@@ -50,19 +49,6 @@ func TestGetDynamicGlobalProperties(t *testing.T) {
 	config, err := client.Database.GetDynamicGlobalProperties()
 	require.NoError(t, err)
 	t.Logf("dynamic properties: %+v", config)
-}
-
-func TestGetOperationsInBlock(t *testing.T) {
-	client := newWebsocketClient(t)
-	defer client.Close()
-
-	ops, err := client.BlockchainHistory.GetOperationsInBlock(uint32(127), blockchain_history.AllOp)
-	require.NoError(t, err)
-	require.Len(t, ops, 2)
-
-	for _, op := range ops {
-		require.True(t, len(op.Operations) > 0)
-	}
 }
 
 func TestGetAccounts(t *testing.T) {
