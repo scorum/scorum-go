@@ -7,6 +7,7 @@ import (
 
 	"regexp"
 	"strconv"
+	"math"
 
 	"github.com/pkg/errors"
 )
@@ -92,6 +93,11 @@ func (encoder *Encoder) EncodeMoney(s string) error {
 		asset := strings.Split(s, " ")
 		amm, _ := strconv.ParseInt(strings.Replace(asset[0], ".", "", -1), 10, 64)
 		ind := strings.Index(asset[0], ".")
+
+		if amm == math.MaxInt64 {
+			return errors.Errorf("encoder: value cannot be equal or greater than %d", math.MaxInt64)
+		}
+
 		var perc int
 		if ind == -1 {
 			perc = 0
