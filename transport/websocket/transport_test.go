@@ -64,7 +64,7 @@ func TestParallel(t *testing.T) {
 	for i := 0; i < 20; i++ {
 		go func(num int) {
 			var resp interface{}
-			err := caller.Call("database_api", "get_block_header", []interface{}{num}, &resp)
+			err := caller.Call("blockchain_history_api", "get_block_header", []interface{}{num}, &resp)
 			require.NoError(t, err)
 			wg.Done()
 		}(i)

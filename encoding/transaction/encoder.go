@@ -92,9 +92,6 @@ func (encoder *Encoder) EncodeMoney(s string) error {
 	if r.MatchString(s) {
 		asset := strings.Split(s, " ")
 		ind := strings.Index(asset[0], ".")
-		if ind != -1 {
-			asset[0] = strings.TrimRight(asset[0], "0")
-		}
 		amm, _ := strconv.ParseInt(strings.Replace(asset[0], ".", "", -1), 10, 64)
 
 		if amm == math.MaxInt64 {
