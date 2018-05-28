@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 	"github.com/scorum/scorum-go/transport"
-	"golang.org/x/net/websocket"
 )
 
 type Transport struct {
@@ -38,7 +38,7 @@ type callRequest struct {
 }
 
 func NewTransport(url string) (*Transport, error) {
-	ws, err := websocket.Dial(url, "", "http://localhost")
+	ws, _, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (caller *Transport) Call(api string, method string, args []interface{}, rep
 	}
 
 	// send Json Rcp request
-	if err := websocket.JSON.Send(caller.conn, request); err != nil {
+	if err := caller.conn.WriteJSON(request); err != nil {
 		caller.mutex.Lock()
 		delete(caller.pending, seq)
 		caller.mutex.Unlock()
@@ -106,14 +106,14 @@ func (caller *Transport) Call(api string, method string, args []interface{}, rep
 
 func (caller *Transport) input() {
 	for {
-		var message string
-		if err := websocket.Message.Receive(caller.conn, &message); err != nil {
+		_, message, err := caller.conn.ReadMessage()
+		if err != nil {
 			caller.stop(err)
 			return
 		}
 
 		var response transport.RPCResponse
-		if err := json.Unmarshal([]byte(message), &response); err != nil {
+		if err := json.Unmarshal(message, &response); err != nil {
 			caller.stop(err)
 			return
 		} else {
@@ -122,7 +122,7 @@ func (caller *Transport) input() {
 			} else {
 				//the message is not a pending call, but probably a callback notice
 				var incoming transport.RPCIncoming
-				if err := json.Unmarshal([]byte(message), &incoming); err != nil {
+				if err := json.Unmarshal(message, &incoming); err != nil {
 					caller.stop(err)
 					return
 				}
