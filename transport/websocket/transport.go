@@ -106,15 +106,14 @@ func (caller *Transport) Call(api string, method string, args []interface{}, rep
 
 func (caller *Transport) input() {
 	for {
-		_, messageBytes, err := caller.conn.ReadMessage()
+		_, message, err := caller.conn.ReadMessage()
 		if err != nil {
 			caller.stop(err)
 			return
 		}
-		message := string(messageBytes)
 
 		var response transport.RPCResponse
-		if err := json.Unmarshal([]byte(message), &response); err != nil {
+		if err := json.Unmarshal(message, &response); err != nil {
 			caller.stop(err)
 			return
 		} else {
@@ -123,7 +122,7 @@ func (caller *Transport) input() {
 			} else {
 				//the message is not a pending call, but probably a callback notice
 				var incoming transport.RPCIncoming
-				if err := json.Unmarshal([]byte(message), &incoming); err != nil {
+				if err := json.Unmarshal(message, &incoming); err != nil {
 					caller.stop(err)
 					return
 				}
