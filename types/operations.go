@@ -133,11 +133,13 @@ var knownOperations = map[OpType]reflect.Type{
 	WitnessUpdateOpType:               reflect.TypeOf(WitnessUpdateOperation{}),
 	AccountCreateByCommitteeOpType:    reflect.TypeOf(AccountCreateByCommitteeOperation{}),
 	AccountCreateWithDelegationOpType: reflect.TypeOf(AccountCreateWithDelegationOperation{}),
+	AccountUpdateOpType:               reflect.TypeOf(AccountUpdateOperation{}),
 	TransferOpType:                    reflect.TypeOf(TransferOperation{}),
 	ProducerRewardOpType:              reflect.TypeOf(ProducerRewardOperation{}),
 	CommentOptionsOpType:              reflect.TypeOf(CommentOptionsOperation{}),
 	CommentOpType:                     reflect.TypeOf(CommentOperation{}),
 	DeleteCommentOpType:               reflect.TypeOf(DeleteCommentOperation{}),
+	VoteOpType:                        reflect.TypeOf(VoteOperation{}),
 }
 
 // UnknownOperation
@@ -335,4 +337,17 @@ type ProducerRewardOperation struct {
 
 func (op *ProducerRewardOperation) Type() OpType {
 	return ProducerRewardOpType
+}
+
+type AccountUpdateOperation struct {
+	Account      string    `json:"account"`
+	Owner        Authority `json:"owner"`
+	Active       Authority `json:"active"`
+	Posting      Authority `json:"posting"`
+	MemoKey      string    `json:"memo_key"`
+	JsonMetadata string    `json:"json_metadata"`
+}
+
+func (op *AccountUpdateOperation) Type() OpType {
+	return AccountUpdateOpType
 }
