@@ -153,3 +153,24 @@ func TestAccountUpdateOperation(t *testing.T) {
 	require.Equal(t, accUpdOpt.MemoKey, "SCR6W2AjgDsuYCmeaaMsZUU2Aa8wXxetZY7LEsuYEKEYf5ddMDY48")
 	require.Equal(t, accUpdOpt.JsonMetadata, "{\"created_at\": \"GENESIS\"}")
 }
+
+func TestDelegateScorumpowerOperation(t *testing.T) {
+	client := newHTTPClient()
+
+	blockIDDelegateSCP := uint32(399112)
+
+	block, err := client.BlockchainHistory.GetBlock(blockIDDelegateSCP)
+
+	require.NoError(t, err)
+	require.Len(t, block.Transactions, 1)
+	require.Len(t, block.Transactions[0].Operations, 1)
+
+	op := block.Transactions[0].Operations[0]
+	require.Equal(t, op.Type(), types.DelegateScorumpower)
+
+	delegateScpOpt, ok := op.(*types.DelegateScorumpowerOperation)
+	require.True(t, ok)
+	require.Equal(t, delegateScpOpt.Delegator, "sheldon")
+	require.Equal(t, delegateScpOpt.Delegatee, "test.witness")
+	require.Equal(t, delegateScpOpt.Scorumpower, "10.000000000 SP")
+}

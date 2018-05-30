@@ -140,6 +140,8 @@ var knownOperations = map[OpType]reflect.Type{
 	CommentOpType:                     reflect.TypeOf(CommentOperation{}),
 	DeleteCommentOpType:               reflect.TypeOf(DeleteCommentOperation{}),
 	VoteOpType:                        reflect.TypeOf(VoteOperation{}),
+	WithdrawScorumpowerOpType:         reflect.TypeOf(WithdrawScorumpowerOperation{}),
+	DelegateScorumpower:               reflect.TypeOf(DelegateScorumpowerOperation{}),
 }
 
 // UnknownOperation
@@ -350,4 +352,23 @@ type AccountUpdateOperation struct {
 
 func (op *AccountUpdateOperation) Type() OpType {
 	return AccountUpdateOpType
+}
+
+type WithdrawScorumpowerOperation struct {
+	Account     string `json:"account"`
+	Scorumpower string `json:"scorumpower"`
+}
+
+func (op *WithdrawScorumpowerOperation) Type() OpType {
+	return WithdrawScorumpowerOpType
+}
+
+type DelegateScorumpowerOperation struct {
+	Delegator   string `json:"delegator"`
+	Delegatee   string `json:"delegatee"`
+	Scorumpower string `json:"scorumpower"`
+}
+
+func (op *DelegateScorumpowerOperation) Type() OpType {
+	return DelegateScorumpower
 }
