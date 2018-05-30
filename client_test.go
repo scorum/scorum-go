@@ -119,3 +119,37 @@ func TestSetBlockAppliedCallback(t *testing.T) {
 	time.Sleep(10 * time.Second)
 	require.True(t, called)
 }
+
+func TestAccountUpdateOperation(t *testing.T) {
+	client := newHTTPClient()
+
+	blockIDWithAcountUpdateOp := uint32(1799)
+
+	block, err := client.BlockchainHistory.GetBlock(blockIDWithAcountUpdateOp)
+
+	require.NoError(t, err)
+	require.Len(t, block.Transactions, 1)
+	require.Len(t, block.Transactions[0].Operations, 1)
+
+	op := block.Transactions[0].Operations[0]
+	require.Equal(t, op.Type(), types.AccountUpdateOpType)
+
+	accUpdOpt, ok := op.(*types.AccountUpdateOperation)
+	require.True(t, ok)
+	require.Equal(t, accUpdOpt.Account, "lizzette")
+
+	require.EqualValues(t, accUpdOpt.Active.WeightThreshold, 1)
+	require.Len(t, accUpdOpt.Active.AccountAuths, 0)
+	require.Len(t, accUpdOpt.Active.KeyAuths, 2)
+
+	v, ok := accUpdOpt.Active.KeyAuths["SCR6W2AjgDsuYCmeaaMsZUU2Aa8wXxetZY7LEsuYEKEYf5ddMDY48"]
+	require.True(t, ok)
+	require.EqualValues(t, v, 1)
+
+	v, ok = accUpdOpt.Active.KeyAuths["SCR7bRd3xQLCozabeBTXkxPWYzMQgHP3Aorj1h81WK68ovr83muoo"]
+	require.True(t, ok)
+	require.EqualValues(t, v, 1)
+
+	require.Equal(t, accUpdOpt.MemoKey, "SCR6W2AjgDsuYCmeaaMsZUU2Aa8wXxetZY7LEsuYEKEYf5ddMDY48")
+	require.Equal(t, accUpdOpt.JsonMetadata, "{\"created_at\": \"GENESIS\"}")
+}
