@@ -146,53 +146,49 @@ type Config struct {
 }
 
 type Account struct {
-	ID                     uint32          `json:"id"`
-	Name                   string          `json:"name"`
-	Owner                  types.Authority `json:"owner"`
-	Active                 types.Authority `json:"active"`
-	Posting                types.Authority `json:"posting"`
-	MemoKey                string          `json:"memo_key"`
-	JsonMetadata           string          `json:"json_metadata"`
-	Proxy                  string          `json:"proxy"`
-	LastOwnerUpdate        types.Time      `json:"last_owner_update"`
-	LastAccountUpdate      types.Time      `json:"last_account_update"`
-	Created                types.Time      `json:"created"`
-	CreatedByGenesis       bool            `json:"created_by_genesis"`
-	OwnerChallenged        bool            `json:"owner_challenged"`
-	ActiveChallenged       bool            `json:"active_challenged"`
-	LastOwnerProved        types.Time      `json:"last_owner_proved"`
-	LastActiveProved       types.Time      `json:"last_active_proved"`
-	RecoveryAccount        string          `json:"recovery_account"`
-	LastAccountRecovery    types.Time      `json:"last_account_recovery"`
-	CommentCount           int32           `json:"comment_count"`
-	LifetimeVoteCount      int32           `json:"lifetime_vote_count"`
-	PostCount              int32           `json:"post_count"`
-	CanVote                bool            `json:"can_vote"`
-	VotingPower            int32           `json:"voting_power"`
-	LastVoteTime           types.Time      `json:"last_vote_time"`
-	Balance                string          `json:"balance"`
-	VestingShares          string          `json:"vesting_shares"`
-	DelegatedVestingShares string          `json:"delegated_vesting_shares"`
-	ReceivedVestingShares  string          `json:"received_vesting_shares"`
-	VestingWithdrawRate    string          `json:"vesting_withdraw_rate"`
-	NextVestingWithdrawal  types.Time      `json:"next_vesting_withdrawal"`
-	Withdrawn              int32           `json:"withdrawn"`
-	ToWithdraw             int32           `json:"to_withdraw"`
-	WithdrawRoutes         int32           `json:"withdraw_routes"`
-	CurationRewards        string          `json:"curation_rewards"`
-	PostingRewards         string          `json:"posting_rewards"`
-	ProxiedVsfVotes        []int32         `json:"proxied_vsf_votes"`
-	WitnessesVotedFor      int32           `json:"witnesses_voted_for"`
-	AverageBandwidth       int64           `json:"average_bandwidth"`
-	LifetimeBandwidth      int64           `json:"lifetime_bandwidth"`
-	LastBandwidthUpdate    types.Time      `json:"last_bandwidth_update"`
-	//AverageMarketBandwidth    int64             `json:"average_market_bandwidth"`
-	//LifetimeMarketBandwidth   int64             `json:"lifetime_market_bandwidth"`
+	ID                        uint32            `json:"id"`
+	Name                      string            `json:"name"`
+	Owner                     types.Authority   `json:"owner"`
+	Active                    types.Authority   `json:"active"`
+	Posting                   types.Authority   `json:"posting"`
+	MemoKey                   string            `json:"memo_key"`
+	JsonMetadata              string            `json:"json_metadata"`
+	Proxy                     string            `json:"proxy"`
+	LastOwnerUpdate           types.Time        `json:"last_owner_update"`
+	LastAccountUpdate         types.Time        `json:"last_account_update"`
+	Created                   types.Time        `json:"created"`
+	CreatedByGenesis          bool              `json:"created_by_genesis"`
+	OwnerChallenged           bool              `json:"owner_challenged"`
+	ActiveChallenged          bool              `json:"active_challenged"`
+	LastOwnerProved           types.Time        `json:"last_owner_proved"`
+	LastActiveProved          types.Time        `json:"last_active_proved"`
+	RecoveryAccount           string            `json:"recovery_account"`
+	LastAccountRecovery       types.Time        `json:"last_account_recovery"`
+	CommentCount              int32             `json:"comment_count"`
+	LifetimeVoteCount         int32             `json:"lifetime_vote_count"`
+	PostCount                 int32             `json:"post_count"`
+	CanVote                   bool              `json:"can_vote"`
+	VotingPower               int32             `json:"voting_power"`
+	LastVoteTime              types.Time        `json:"last_vote_time"`
+	Balance                   string            `json:"balance"`
+	VestingShares             string            `json:"vesting_shares"`
+	DelegatedVestingShares    string            `json:"delegated_vesting_shares"`
+	ReceivedVestingShares     string            `json:"received_vesting_shares"`
+	VestingWithdrawRate       string            `json:"vesting_withdraw_rate"`
+	NextVestingWithdrawal     types.Time        `json:"next_vesting_withdrawal"`
+	CurationRewards           string            `json:"curation_rewards"`
+	PostingRewards            string            `json:"posting_rewards"`
+	ProxiedVsfVotes           []json.RawMessage `json:"proxied_vsf_votes"`
+	WitnessesVotedFor         json.RawMessage   `json:"witnesses_voted_for"`
+	AverageBandwidth          json.RawMessage   `json:"average_bandwidth"`
+	LifetimeBandwidth         json.RawMessage   `json:"lifetime_bandwidth"`
+	LastBandwidthUpdate       types.Time        `json:"last_bandwidth_update"`
+	AverageMarketBandwidth    json.RawMessage   `json:"average_market_bandwidth"`
+	LifetimeMarketBandwidth   json.RawMessage   `json:"lifetime_market_bandwidth"`
 	LastMarketBandwidthUpdate types.Time        `json:"last_market_bandwidth_update"`
 	LastPost                  types.Time        `json:"last_post"`
 	LastRootPost              types.Time        `json:"last_root_post"`
 	VestingBalance            string            `json:"vesting_balance"`
-	Reputation                int32             `json:"reputation"`
 	TransferHistory           []json.RawMessage `json:"transfer_history"`
 	PostHistory               []json.RawMessage `json:"post_history"`
 	VoteHistory               []json.RawMessage `json:"vote_history"`

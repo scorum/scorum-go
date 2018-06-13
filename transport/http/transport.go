@@ -81,7 +81,7 @@ func (caller *Transport) Call(api string, method string, args []interface{}, rep
 
 	if rpcResponse.Result != nil {
 		if err := json.Unmarshal(*rpcResponse.Result, reply); err != nil {
-			return errors.Wrapf(err, "failed to unmarshal rpc result: %+v", rpcResponse.Result)
+			return errors.Wrapf(err, "failed to unmarshal rpc result: %+v", string(*rpcResponse.Result))
 		}
 	}
 
