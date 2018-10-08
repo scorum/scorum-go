@@ -38,7 +38,7 @@ var (
 )
 
 type Deposit struct {
-	// Unique deposit GameID, TransferOperation Memo must contain this GameID to update the balance
+	// Unique deposit ID, TransferOperation Memo must contain this ID to update the balance
 	ID string
 	// Account, username in Scorum
 	Account string
