@@ -13,7 +13,7 @@ const (
 	MarketCorrectScoreAway
 	MarketCorrectScore
 	MarketGoalHome
-	MarketGoalDraw
+	MarketGoalBoth
 	MarketGoalAway
 	MarketTotal
 	MarketTotalGoalsHome

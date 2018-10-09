@@ -49,6 +49,90 @@ func TestCreateGameOperation_SerializationWithTotalMarket(t *testing.T) {
 	require.EqualValues(t, "230561646d696e0967616d65206e616d659b2a645b2100000000010ce803", hex.EncodeToString(b.Bytes()))
 }
 
+func TestCreateGameOperation_SerializationManyMarkets(t *testing.T) {
+	time := time.Unix(1461605400, 0)
+	op := CreateGameOperation{
+		Moderator:           "moderator_name",
+		Name:                "game_name",
+		StartTime:           Time{&time},
+		AutoResolveDelaySec: 33,
+		Markets: []Market{
+			&YesNoMarket{
+				ID: MarketResultHome,
+			},
+			&YesNoMarket{
+				ID: MarketResultDraw,
+			},
+			&YesNoMarket{
+				ID: MarketResultAway,
+			},
+			&YesNoMarket{
+				ID: MarketRoundHome,
+			},
+			&OverUnderMarket{
+				ID:        MarketHandicap,
+				Threshold: -500,
+			},
+			&OverUnderMarket{
+				ID:        MarketHandicap,
+				Threshold: 0,
+			},
+			&OverUnderMarket{
+				ID:        MarketHandicap,
+				Threshold: 1000,
+			},
+			&YesNoMarket{
+				ID: MarketCorrectScoreHome,
+			},
+			&YesNoMarket{
+				ID: MarketCorrectScoreDraw,
+			},
+			&YesNoMarket{
+				ID: MarketCorrectScoreAway,
+			},
+			&ScoreYesNoMarket{
+				ID:   MarketCorrectScore,
+				Home: 1,
+				Away: 0,
+			},
+			&ScoreYesNoMarket{
+				ID:   MarketCorrectScore,
+				Home: 1,
+				Away: 1,
+			},
+			&YesNoMarket{
+				ID: MarketGoalHome,
+			},
+			&YesNoMarket{
+				ID: MarketGoalBoth,
+			},
+			&YesNoMarket{
+				ID: MarketGoalAway,
+			},
+			&OverUnderMarket{
+				ID:        MarketTotal,
+				Threshold: 0,
+			},
+			&OverUnderMarket{
+				ID:        MarketTotal,
+				Threshold: 500,
+			},
+			&OverUnderMarket{
+				ID:        MarketTotal,
+				Threshold: 1000,
+			},
+		},
+	}
+
+	var b bytes.Buffer
+	encoder := transaction.NewEncoder(&b)
+	require.NoError(t, op.MarshalTransaction(encoder))
+	require.EqualValues(
+		t,
+		"230e6d6f64657261746f725f6e616d650967616d655f6e616d6518541e5721000000001200010203040cfe04000004e80305060708010000000801000100090a0b0c00000cf4010ce803",
+		hex.EncodeToString(b.Bytes()))
+}
+
 func TestPostGameResultsOperation_Serialization(t *testing.T) {
 	op := PostGameResultsOperation{
 		GameID:    42,
