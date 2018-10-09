@@ -36,11 +36,11 @@ func (tx *SignedTransaction) Digest(chain *Chain) ([]byte, error) {
 	// Write the chain ID.
 	rawChainID, err := hex.DecodeString(chain.ID)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to decode chain GameID: %v", chain.ID)
+		return nil, errors.Wrapf(err, "failed to decode chain ID: %v", chain.ID)
 	}
 
 	if _, err := msgBuffer.Write(rawChainID); err != nil {
-		return nil, errors.Wrap(err, "failed to write chain GameID")
+		return nil, errors.Wrap(err, "failed to write chain ID")
 	}
 
 	// Write the serialized transaction.
