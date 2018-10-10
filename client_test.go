@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	nodeWSS   = "wss://testnet.scorum.com"
-	nodeHTTPS = "https://testnet.scorum.com"
+	nodeWSS         = "wss://testnet.scorum.com"
+	nodeHTTPS       = "https://testnet.scorum.com"
+	mainNetNodeHTTP = "https://prodnet.scorum.com"
 )
 
 // test accounts available at https://github.com/scorum/scorum/wiki/Testnet-existent-accounts
@@ -29,6 +30,12 @@ func newWebsocketClient(t *testing.T) *Client {
 
 func newHTTPClient() *Client {
 	transport := http.NewTransport(nodeHTTPS)
+	client := NewClient(transport)
+	return client
+}
+
+func newMainNetHTTPClient() *Client {
+	transport := http.NewTransport(mainNetNodeHTTP)
 	client := NewClient(transport)
 	return client
 }
@@ -121,6 +128,7 @@ func TestSetBlockAppliedCallback(t *testing.T) {
 }
 
 func TestAccountUpdateOperation(t *testing.T) {
+	t.Skip()
 	client := newHTTPClient()
 
 	blockIDWithAcountUpdateOp := uint32(1799)
@@ -155,9 +163,9 @@ func TestAccountUpdateOperation(t *testing.T) {
 }
 
 func TestDelegateScorumpowerOperation(t *testing.T) {
-	client := newHTTPClient()
+	client := newMainNetHTTPClient()
 
-	blockIDDelegateSCP := uint32(399112)
+	blockIDDelegateSCP := uint32(5709822)
 
 	block, err := client.BlockchainHistory.GetBlock(blockIDDelegateSCP)
 
@@ -170,7 +178,7 @@ func TestDelegateScorumpowerOperation(t *testing.T) {
 
 	delegateScpOpt, ok := op.(*types.DelegateScorumpowerOperation)
 	require.True(t, ok)
-	require.Equal(t, delegateScpOpt.Delegator, "sheldon")
-	require.Equal(t, delegateScpOpt.Delegatee, "test.witness")
-	require.Equal(t, delegateScpOpt.Scorumpower, "10.000000000 SP")
+	require.Equal(t, delegateScpOpt.Delegator, "cali488")
+	require.Equal(t, delegateScpOpt.Delegatee, "showtenseven")
+	require.Equal(t, delegateScpOpt.Scorumpower, "2.182693663 SP")
 }
