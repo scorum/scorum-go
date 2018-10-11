@@ -51,7 +51,19 @@ var opTypes = []OpType{
 	AtomicswapInitiateOperation,
 	AtomicswapRedeemOperation,
 	AtomicswapRefundOperation,
-	AuthorReward,
+
+	CloseBudgetByAdvertisingModeratorOperation,
+	UpdateBudgetOperation,
+
+	CreateGame,
+	CancelGame,
+	UpdateGameMarkets,
+	UpdateGameStartTime,
+	PostGameResults,
+	PostBet,
+	CancelPendingBets,
+
+	// virtual operations
 	CommentBenefactorReward,
 	CommentPayoutUpdate,
 	CommentReward,
@@ -61,6 +73,20 @@ var opTypes = []OpType{
 	ProducerRewardOpType,
 	ReturnScorumpowerDelegation,
 	ShutdownWitness,
+	WitnessMissBlock,
+	ExpiredContractRefund,
+	AccFinishedVestingWithdraw,
+	DevpoolFinishedVestingWithdraw,
+	AccToAccVestingWithdraw,
+	DevpoolToAccVestingWithdraw,
+	AccToDevpoolVestingWithdraw,
+	DevpoolToDevpoolVesting,
+	ProposalVirtual,
+	ActiveSpHoldersRewardLegacy,
+	AllocateCashFromAdvertisingBudget,
+	CashBackFromAdvertisingBudgetToOwner,
+	ClosingBudget,
+	BetsMatched,
 }
 
 const (
@@ -97,14 +123,42 @@ const (
 	AtomicswapInitiateOperation          OpType = "atomicswap_initiate_operation"
 	AtomicswapRedeemOperation            OpType = "atomicswap_redeem_operation"
 	AtomicswapRefundOperation            OpType = "atomicswap_refund_operation"
-	AuthorReward                         OpType = "author_reward"
-	CommentBenefactorReward              OpType = "comment_benefactor_reward"
-	CommentPayoutUpdate                  OpType = "comment_payout_update"
-	CommentReward                        OpType = "comment_reward"
-	CurationReward                       OpType = "curation_reward"
-	FillScorumpowerWithdraw              OpType = "fill_scorumpower_withdraw"
-	Hardfork                             OpType = "hardfork"
-	ProducerRewardOpType                 OpType = "producer_reward"
-	ReturnScorumpowerDelegation          OpType = "return_scorumpower_delegation"
-	ShutdownWitness                      OpType = "shutdown_witness"
+
+	CloseBudgetByAdvertisingModeratorOperation OpType = "close_budget_by_advertising_moderator"
+	UpdateBudgetOperation                      OpType = "update_budget"
+
+	CreateGame          OpType = "create_game"
+	CancelGame          OpType = "cancel_game"
+	UpdateGameMarkets   OpType = "update_game_markets"
+	UpdateGameStartTime OpType = "update_game_start_time"
+	PostGameResults     OpType = "post_game_results"
+	PostBet             OpType = "post_bet"
+	CancelPendingBets   OpType = "cancel_pending_bets_operation"
+
+	// virtual operations
+	AuthorReward                OpType = "author_reward"
+	CommentBenefactorReward     OpType = "comment_benefactor_reward"
+	CommentPayoutUpdate         OpType = "comment_payout_update"
+	CommentReward               OpType = "comment_reward"
+	CurationReward              OpType = "curation_reward"
+	FillScorumpowerWithdraw     OpType = "fill_scorumpower_withdraw"
+	Hardfork                    OpType = "hardfork"
+	ProducerRewardOpType        OpType = "producer_reward"
+	ReturnScorumpowerDelegation OpType = "return_scorumpower_delegation"
+	ShutdownWitness             OpType = "shutdown_witness"
+
+	WitnessMissBlock                     OpType = "witness_miss_block"
+	ExpiredContractRefund                OpType = "expired_contract_refund"
+	AccFinishedVestingWithdraw           OpType = "acc_finished_vesting_withdraw"
+	DevpoolFinishedVestingWithdraw       OpType = "devpool_finished_vesting_withdraw"
+	AccToAccVestingWithdraw              OpType = "acc_to_acc_vesting_withdraw"
+	DevpoolToAccVestingWithdraw          OpType = "devpool_to_acc_vesting_withdraw"
+	AccToDevpoolVestingWithdraw          OpType = "acc_to_devpool_vesting_withdraw"
+	DevpoolToDevpoolVesting              OpType = "devpool_to_devpool_vesting_withdraw"
+	ProposalVirtual                      OpType = "proposal_virtual"
+	ActiveSpHoldersRewardLegacy          OpType = "active_sp_holders_reward_legacy"
+	AllocateCashFromAdvertisingBudget    OpType = "allocate_cash_from_advertising_budget"
+	CashBackFromAdvertisingBudgetToOwner OpType = "cash_back_from_advertising_budget_to_owner"
+	ClosingBudget                        OpType = "closing_budget"
+	BetsMatched                          OpType = "bets_matched"
 )

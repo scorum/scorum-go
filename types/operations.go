@@ -142,6 +142,13 @@ var knownOperations = map[OpType]reflect.Type{
 	VoteOpType:                        reflect.TypeOf(VoteOperation{}),
 	WithdrawScorumpowerOpType:         reflect.TypeOf(WithdrawScorumpowerOperation{}),
 	DelegateScorumpower:               reflect.TypeOf(DelegateScorumpowerOperation{}),
+	CreateGame:                        reflect.TypeOf(CreateGameOperation{}),
+	CancelGame:                        reflect.TypeOf(CancelGameOperation{}),
+	UpdateGameStartTime:               reflect.TypeOf(UpdateGameStartTimeOperation{}),
+	PostGameResults:                   reflect.TypeOf(PostGameResultsOperation{}),
+	PostBet:                           reflect.TypeOf(PostBetOperation{}),
+	CancelPendingBets:                 reflect.TypeOf(CancelPendingBetsOperation{}),
+	BetsMatched:                       reflect.TypeOf(BetsMatchedVirtualOperation{}),
 }
 
 // UnknownOperation
@@ -371,4 +378,128 @@ type DelegateScorumpowerOperation struct {
 
 func (op *DelegateScorumpowerOperation) Type() OpType {
 	return DelegateScorumpower
+}
+
+type CreateGameOperation struct {
+	Moderator           string   `json:"moderator"`
+	Name                string   `json:"name"`
+	GameType            int8     `json:"game_type"`
+	StartTime           Time     `json:"start_time"`
+	AutoResolveDelaySec uint32   `json:"auto_resolve_delay_sec"`
+	Markets             []Market `json:"markets"`
+}
+
+func (op *CreateGameOperation) Type() OpType {
+	return CreateGame
+}
+
+func (op *CreateGameOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.Encode(op.Moderator)
+	enc.Encode(op.Name)
+	op.StartTime.MarshalTransaction(encoder)
+	enc.Encode(op.AutoResolveDelaySec)
+	enc.Encode(op.GameType)
+	enc.Encode(int8(len(op.Markets)))
+	for _, m := range op.Markets {
+		enc.Encode(m)
+	}
+	return enc.Err()
+}
+
+type CancelGameOperation struct {
+	GameID    int64  `json:"game_id"`
+	Moderator string `json:"moderator"`
+}
+
+func (op *CancelGameOperation) Type() OpType {
+	return CancelGame
+}
+
+func (op *CancelGameOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.Encode(op.Moderator)
+	enc.Encode(op.GameID)
+	return enc.Err()
+}
+
+type UpdateGameStartTimeOperation struct {
+	GameID    int64  `json:"game_id"`
+	Moderator string `json:"moderator"`
+	StartTime Time   `json:"start_time"`
+}
+
+func (op *UpdateGameStartTimeOperation) Type() OpType {
+	return UpdateGameStartTime
+}
+func (op *UpdateGameStartTimeOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.Encode(op.Moderator)
+	enc.Encode(op.GameID)
+	op.StartTime.MarshalTransaction(encoder)
+	return enc.Err()
+}
+
+type PostGameResultsOperation struct {
+	GameID    int64     `json:"game_id"`
+	Moderator string    `json:"moderator"`
+	Wincases  []Wincase `json:"wincases"`
+}
+
+func (op *PostGameResultsOperation) Type() OpType {
+	return PostGameResults
+}
+
+func (op *PostGameResultsOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.Encode(op.Moderator)
+	enc.Encode(op.GameID)
+	enc.Encode(int8(len(op.Wincases)))
+	for _, m := range op.Wincases {
+		enc.Encode(m)
+	}
+	return enc.Err()
+}
+
+type Odds struct {
+	Numerator   int16 `json:"numerator"`
+	Denominator int16 `json:"denominator"`
+}
+
+type PostBetOperation struct {
+	Better  string  `json:"better"`
+	GameID  int64   `json:"game_id"`
+	Wincase Wincase `json:"wincase"`
+	Odds    Odds    `json:"odds"`
+	Stake   Asset   `json:"stake"`
+	Live    bool    `json:"live"`
+}
+
+func (op *PostBetOperation) Type() OpType {
+	return PostBet
+}
+
+type CancelPendingBetsOperation struct {
+	BetIDs []int64 `json:"bet_ids"`
+	Better string  `json:"better"`
+}
+
+func (op *CancelPendingBetsOperation) Type() OpType {
+	return CancelPendingBets
+}
+
+type BetsMatchedVirtualOperation struct {
+	Better1       string `json:"better1"`
+	Better2       string `json:"better2"`
+	MatchedStake1 Asset  `json:"matched_stake1"`
+	MatchedStake2 Asset  `json:"matched_stake2"`
+	MatchedBetID  int64  `json:"matched_bet_id"`
+}
+
+func (op *BetsMatchedVirtualOperation) Type() OpType {
+	return BetsMatched
 }

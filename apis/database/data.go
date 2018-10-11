@@ -115,7 +115,7 @@ type Config struct {
 	ScorumSoftMaxCommentDepth                           int32  `json:"SCORUM_SOFT_MAX_COMMENT_DEPTH"`
 	ScorumStartMinerVotingBlock                         int32  `json:"SCORUM_START_MINER_VOTING_BLOCK"`
 	ScorumStartVestingBlock                             int32  `json:"SCORUM_START_VESTING_BLOCK"`
-	ScorumUpvoteLockout                                 string `json:"SCORUM_UPVOTE_LOCKOUT"`
+	ScorumUpvoteLockout                                 int32  `json:"SCORUM_UPVOTE_LOCKOUT"`
 	ScorumVestingFundPercent                            int32  `json:"SCORUM_VESTING_FUND_PERCENT"`
 	ScorumVestingWithdrawIntervals                      int32  `json:"SCORUM_VESTING_WITHDRAW_INTERVALS"`
 	ScorumVestingWithdrawIntervalsPreHf16               int32  `json:"SCORUM_VESTING_WITHDRAW_INTERVALS_PRE_HF_16"`
