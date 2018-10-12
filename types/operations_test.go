@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/scorum/scorum-go/encoding/transaction"
 	"github.com/stretchr/testify/require"
 )
@@ -14,7 +15,11 @@ func TestCreateGameOperation_SerializationWithoutMarkets(t *testing.T) {
 	time, err := time.Parse(Layout, `"2018-08-03T10:12:43"`)
 	require.NoError(t, err)
 
+	uuid := uuid.UUID{}
+	require.NoError(t, uuid.UnmarshalText([]byte("e629f9aa-6b2c-46aa-8fa8-36770e7a7a5f")))
+
 	op := CreateGameOperation{
+		UUID:                uuid,
 		Moderator:           "admin",
 		Name:                "game name",
 		StartTime:           Time{&time},
@@ -25,14 +30,18 @@ func TestCreateGameOperation_SerializationWithoutMarkets(t *testing.T) {
 	encoder := transaction.NewEncoder(&b)
 	require.NoError(t, op.MarshalTransaction(encoder))
 
-	require.EqualValues(t, "230561646d696e0967616d65206e616d659b2a645b210000000000", hex.EncodeToString(b.Bytes()))
+	require.EqualValues(t, "23e629f9aa6b2c46aa8fa836770e7a7a5f0561646d696e0967616d65206e616d659b2a645b210000000000", hex.EncodeToString(b.Bytes()))
 }
 
 func TestCreateGameOperation_SerializationWithTotalMarket(t *testing.T) {
 	time, err := time.Parse(Layout, `"2018-08-03T10:12:43"`)
 	require.NoError(t, err)
 
+	uuid := uuid.UUID{}
+	require.NoError(t, uuid.UnmarshalText([]byte("e629f9aa-6b2c-46aa-8fa8-36770e7a7a5f")))
+
 	op := CreateGameOperation{
+		UUID:                uuid,
 		Moderator:           "admin",
 		Name:                "game name",
 		StartTime:           Time{&time},
@@ -46,12 +55,17 @@ func TestCreateGameOperation_SerializationWithTotalMarket(t *testing.T) {
 	var b bytes.Buffer
 	encoder := transaction.NewEncoder(&b)
 	require.NoError(t, op.MarshalTransaction(encoder))
-	require.EqualValues(t, "230561646d696e0967616d65206e616d659b2a645b2100000000010ce803", hex.EncodeToString(b.Bytes()))
+	require.EqualValues(t, "23e629f9aa6b2c46aa8fa836770e7a7a5f0561646d696e0967616d65206e616d659b2a645b2100000000010ce803", hex.EncodeToString(b.Bytes()))
 }
 
 func TestCreateGameOperation_SerializationManyMarkets(t *testing.T) {
 	time := time.Unix(1461605400, 0)
+
+	uuid := uuid.UUID{}
+	require.NoError(t, uuid.UnmarshalText([]byte("e629f9aa-6b2c-46aa-8fa8-36770e7a7a5f")))
+
 	op := CreateGameOperation{
+		UUID:                uuid,
 		Moderator:           "moderator_name",
 		Name:                "game_name",
 		StartTime:           Time{&time},
@@ -129,13 +143,16 @@ func TestCreateGameOperation_SerializationManyMarkets(t *testing.T) {
 	require.NoError(t, op.MarshalTransaction(encoder))
 	require.EqualValues(
 		t,
-		"230e6d6f64657261746f725f6e616d650967616d655f6e616d6518541e5721000000001200010203040cfe04000004e80305060708010000000801000100090a0b0c00000cf4010ce803",
+		"23e629f9aa6b2c46aa8fa836770e7a7a5f0e6d6f64657261746f725f6e616d650967616d655f6e616d6518541e5721000000001200010203040cfe04000004e80305060708010000000801000100090a0b0c00000cf4010ce803",
 		hex.EncodeToString(b.Bytes()))
 }
 
 func TestPostGameResultsOperation_Serialization(t *testing.T) {
+	uuid := uuid.UUID{}
+	require.NoError(t, uuid.UnmarshalText([]byte("e629f9aa-6b2c-46aa-8fa8-36770e7a7a5f")))
+
 	op := PostGameResultsOperation{
-		GameID:    42,
+		UUID:      uuid,
 		Moderator: "homer",
 		Wincases: []Wincase{
 			&YesNoWincase{
@@ -148,7 +165,7 @@ func TestPostGameResultsOperation_Serialization(t *testing.T) {
 				ID: WincaseResultAwayYes,
 			},
 			&YesNoWincase{
-				ID: WincaseResultHomeNo,
+				ID: WincaseRoundHomeNo,
 			},
 			&OverUnderWincase{
 				ID:        WincaseHandicapOver,
@@ -207,6 +224,6 @@ func TestPostGameResultsOperation_Serialization(t *testing.T) {
 
 	require.EqualValues(
 		t,
-		"2705686f6d65722a00000000000000110003040108e803090cfe0900000a0d0f1001000200110300020012151618000019e803",
+		"27e629f9aa6b2c46aa8fa836770e7a7a5f05686f6d6572110003040708e803090cfe0900000a0d0f1001000200110300020012151618000019e803",
 		hex.EncodeToString(b.Bytes()))
 }
