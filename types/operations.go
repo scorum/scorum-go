@@ -5,6 +5,7 @@ import (
 	"errors"
 	"reflect"
 
+	"github.com/google/uuid"
 	"github.com/scorum/scorum-go/encoding/transaction"
 )
 
@@ -381,12 +382,13 @@ func (op *DelegateScorumpowerOperation) Type() OpType {
 }
 
 type CreateGameOperation struct {
-	Moderator           string   `json:"moderator"`
-	Name                string   `json:"name"`
-	GameType            int8     `json:"game_type"`
-	StartTime           Time     `json:"start_time"`
-	AutoResolveDelaySec uint32   `json:"auto_resolve_delay_sec"`
-	Markets             []Market `json:"markets"`
+	UUID                uuid.UUID `json:"uuid"`
+	Moderator           string    `json:"moderator"`
+	Name                string    `json:"name"`
+	GameType            int8      `json:"game_type"`
+	StartTime           Time      `json:"start_time"`
+	AutoResolveDelaySec uint32    `json:"auto_resolve_delay_sec"`
+	Markets             []Market  `json:"markets"`
 }
 
 func (op *CreateGameOperation) Type() OpType {
@@ -396,6 +398,7 @@ func (op *CreateGameOperation) Type() OpType {
 func (op *CreateGameOperation) MarshalTransaction(encoder *transaction.Encoder) error {
 	enc := transaction.NewRollingEncoder(encoder)
 	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.EncodeUUID(op.UUID)
 	enc.Encode(op.Moderator)
 	enc.Encode(op.Name)
 	op.StartTime.MarshalTransaction(encoder)
@@ -409,8 +412,8 @@ func (op *CreateGameOperation) MarshalTransaction(encoder *transaction.Encoder) 
 }
 
 type CancelGameOperation struct {
-	GameID    int64  `json:"game_id"`
-	Moderator string `json:"moderator"`
+	UUID      uuid.UUID `json:"UUID"`
+	Moderator string    `json:"moderator"`
 }
 
 func (op *CancelGameOperation) Type() OpType {
@@ -420,15 +423,15 @@ func (op *CancelGameOperation) Type() OpType {
 func (op *CancelGameOperation) MarshalTransaction(encoder *transaction.Encoder) error {
 	enc := transaction.NewRollingEncoder(encoder)
 	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.EncodeUUID(op.UUID)
 	enc.Encode(op.Moderator)
-	enc.Encode(op.GameID)
 	return enc.Err()
 }
 
 type UpdateGameStartTimeOperation struct {
-	GameID    int64  `json:"game_id"`
-	Moderator string `json:"moderator"`
-	StartTime Time   `json:"start_time"`
+	UUID      uuid.UUID `json:"uuid"`
+	Moderator string    `json:"moderator"`
+	StartTime Time      `json:"start_time"`
 }
 
 func (op *UpdateGameStartTimeOperation) Type() OpType {
@@ -437,14 +440,14 @@ func (op *UpdateGameStartTimeOperation) Type() OpType {
 func (op *UpdateGameStartTimeOperation) MarshalTransaction(encoder *transaction.Encoder) error {
 	enc := transaction.NewRollingEncoder(encoder)
 	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.EncodeUUID(op.UUID)
 	enc.Encode(op.Moderator)
-	enc.Encode(op.GameID)
 	op.StartTime.MarshalTransaction(encoder)
 	return enc.Err()
 }
 
 type PostGameResultsOperation struct {
-	GameID    int64     `json:"game_id"`
+	UUID      uuid.UUID `json:"uuid"`
 	Moderator string    `json:"moderator"`
 	Wincases  []Wincase `json:"wincases"`
 }
@@ -456,8 +459,8 @@ func (op *PostGameResultsOperation) Type() OpType {
 func (op *PostGameResultsOperation) MarshalTransaction(encoder *transaction.Encoder) error {
 	enc := transaction.NewRollingEncoder(encoder)
 	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.EncodeUUID(op.UUID)
 	enc.Encode(op.Moderator)
-	enc.Encode(op.GameID)
 	enc.Encode(int8(len(op.Wincases)))
 	for _, m := range op.Wincases {
 		enc.Encode(m)
@@ -471,12 +474,13 @@ type Odds struct {
 }
 
 type PostBetOperation struct {
-	Better  string  `json:"better"`
-	GameID  int64   `json:"game_id"`
-	Wincase Wincase `json:"wincase"`
-	Odds    Odds    `json:"odds"`
-	Stake   Asset   `json:"stake"`
-	Live    bool    `json:"live"`
+	UUID     uuid.UUID `json:"uuid"`
+	Better   string    `json:"better"`
+	GameUUID uuid.UUID `json:"game_uuid"`
+	Wincase  Wincase   `json:"wincase"`
+	Odds     Odds      `json:"odds"`
+	Stake    Asset     `json:"stake"`
+	Live     bool      `json:"live"`
 }
 
 func (op *PostBetOperation) Type() OpType {
@@ -484,8 +488,8 @@ func (op *PostBetOperation) Type() OpType {
 }
 
 type CancelPendingBetsOperation struct {
-	BetIDs []int64 `json:"bet_ids"`
-	Better string  `json:"better"`
+	BetIDs []uuid.UUID `json:"bet_ids"`
+	Better string      `json:"better"`
 }
 
 func (op *CancelPendingBetsOperation) Type() OpType {
@@ -493,11 +497,13 @@ func (op *CancelPendingBetsOperation) Type() OpType {
 }
 
 type BetsMatchedVirtualOperation struct {
-	Better1       string `json:"better1"`
-	Better2       string `json:"better2"`
-	MatchedStake1 Asset  `json:"matched_stake1"`
-	MatchedStake2 Asset  `json:"matched_stake2"`
-	MatchedBetID  int64  `json:"matched_bet_id"`
+	Bet1UUID      uuid.UUID `json:"bet1_uuid"`
+	Bet2UUID      uuid.UUID `json:"bet2_uuid"`
+	Better1       string    `json:"better1"`
+	Better2       string    `json:"better2"`
+	MatchedStake1 Asset     `json:"matched_stake1"`
+	MatchedStake2 Asset     `json:"matched_stake2"`
+	MatchedBetID  int64     `json:"matched_bet_id"`
 }
 
 func (op *BetsMatchedVirtualOperation) Type() OpType {

@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"math"
 )
@@ -124,6 +125,14 @@ func (encoder *Encoder) EncodeMoney(s string) error {
 	} else {
 		return errors.New("Expecting amount like '99.000 SCR'")
 	}
+}
+
+func (encoder *Encoder) EncodeUUID(id uuid.UUID) error {
+	bytes, err := id.MarshalBinary()
+	if err != nil {
+		return err
+	}
+	return encoder.writeBytes(bytes)
 }
 
 func (encoder *Encoder) encodeString(v string) error {
