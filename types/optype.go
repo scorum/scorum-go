@@ -87,6 +87,7 @@ var opTypes = []OpType{
 	CashBackFromAdvertisingBudgetToOwner,
 	ClosingBudget,
 	BetsMatched,
+	GameStatusChanged,
 }
 
 const (
@@ -161,4 +162,5 @@ const (
 	CashBackFromAdvertisingBudgetToOwner OpType = "cash_back_from_advertising_budget_to_owner"
 	ClosingBudget                        OpType = "closing_budget"
 	BetsMatched                          OpType = "bets_matched"
+	GameStatusChanged                    OpType = "game_status_changed"
 )

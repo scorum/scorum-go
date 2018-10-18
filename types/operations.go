@@ -150,6 +150,7 @@ var knownOperations = map[OpType]reflect.Type{
 	PostBet:                           reflect.TypeOf(PostBetOperation{}),
 	CancelPendingBets:                 reflect.TypeOf(CancelPendingBetsOperation{}),
 	BetsMatched:                       reflect.TypeOf(BetsMatchedVirtualOperation{}),
+	GameStatusChanged:                 reflect.TypeOf(GameStatusChangedVirtualOperation{}),
 }
 
 // UnknownOperation
@@ -508,4 +509,24 @@ type BetsMatchedVirtualOperation struct {
 
 func (op *BetsMatchedVirtualOperation) Type() OpType {
 	return BetsMatched
+}
+
+type GameStatus uint8
+
+const (
+	GameStatusCreated = iota
+	GameStatusStarted
+	GameStatusFinished
+	GameStatusResolved
+	GameStatusExpired
+)
+
+type GameStatusChangedVirtualOperation struct {
+	GameUUID  uuid.UUID  `json:"game_uuid"`
+	OldStatus GameStatus `json:"old_status"`
+	NewStatus GameStatus `json:"new_status"`
+}
+
+func (op *GameStatusChangedVirtualOperation) Type() OpType {
+	return GameStatusChanged
 }
