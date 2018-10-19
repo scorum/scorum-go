@@ -59,7 +59,7 @@ func (encoder *Encoder) Encode(v interface{}) error {
 
 	switch v := v.(type) {
 	case int:
-		return encoder.EncodeNumber(v)
+		return encoder.EncodeNumber(int32(v))
 	case int8:
 		return encoder.EncodeNumber(v)
 	case int16:
