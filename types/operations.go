@@ -386,7 +386,7 @@ type CreateGameOperation struct {
 	UUID                uuid.UUID `json:"uuid"`
 	Moderator           string    `json:"moderator"`
 	Name                string    `json:"name"`
-	GameType            int8      `json:"game_type"`
+	GameType            GameType  `json:"game"`
 	StartTime           Time      `json:"start_time"`
 	AutoResolveDelaySec uint32    `json:"auto_resolve_delay_sec"`
 	Markets             []Market  `json:"markets"`
@@ -404,7 +404,7 @@ func (op *CreateGameOperation) MarshalTransaction(encoder *transaction.Encoder) 
 	enc.Encode(op.Name)
 	op.StartTime.MarshalTransaction(encoder)
 	enc.Encode(op.AutoResolveDelaySec)
-	enc.Encode(op.GameType)
+	enc.Encode(int8(op.GameType))
 	enc.Encode(int8(len(op.Markets)))
 	for _, m := range op.Markets {
 		enc.Encode(m)

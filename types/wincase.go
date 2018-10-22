@@ -1,6 +1,9 @@
 package types
 
-import "github.com/scorum/scorum-go/encoding/transaction"
+import (
+	"encoding/json"
+	"github.com/scorum/scorum-go/encoding/transaction"
+)
 
 const (
 	WincaseResultHomeYes WincaseID = iota
@@ -29,11 +32,36 @@ const (
 	WincaseGoalAwayNo
 	WincaseTotalOver
 	WincaseTotalUnder
-	WincaseTotalGoalsHomeOver
-	WincaseTotalGoalsHomeUnder
-	WincaseTotalGoalsAwayOver
-	WincaseTotalGoalsAwayUnder
 )
+
+var WincaseNames = map[WincaseID]string{
+	WincaseResultHomeYes:       "result_home::yes",
+	WincaseResultHomeNo:        "result_home::no",
+	WincaseResultDrawYes:       "result_draw::yes",
+	WincaseResultDrawNo:        "result_draw::no",
+	WincaseResultAwayYes:       "result_away::yes",
+	WincaseResultAwayNo:        "result_away::no",
+	WincaseRoundHomeYes:        "round_home::yes",
+	WincaseRoundHomeNo:         "round_home::no",
+	WincaseHandicapOver:        "handicap::over",
+	WincaseHandicapUnder:       "handicap::under",
+	WincaseCorrectScoreHomeYes: "correct_score_home::yes",
+	WincaseCorrectScoreHomeNo:  "correct_score_home::no",
+	WincaseCorrectScoreDrawYes: "correct_score_draw::yes",
+	WincaseCorrectScoreDrawNo:  "correct_score_draw::no",
+	WincaseCorrectScoreAwayYes: "correct_score_away::yes",
+	WincaseCorrectScoreAwayNo:  "correct_score_away::no",
+	WincaseCorrectScoreYes:     "correct_score::yes",
+	WincaseCorrectScoreNo:      "correct_score::no",
+	WincaseGoalHomeYes:         "goal_home::yes",
+	WincaseGoalHomeNo:          "goal_home::no",
+	WincaseGoalBothYes:         "goal_both::yes",
+	WincaseGoalBothNo:          "goal_both::no",
+	WincaseGoalAwayYes:         "goal_away::yes",
+	WincaseGoalAwayNo:          "goal_away::no",
+	WincaseTotalOver:           "total::over",
+	WincaseTotalUnder:          "total::under",
+}
 
 type Wincase interface {
 	transaction.TransactionMarshaller
@@ -45,6 +73,25 @@ type OverUnderWincase struct {
 	ID WincaseID
 
 	Threshold int16
+}
+
+func (w OverUnderWincase) MarshalJSON() ([]byte, error) {
+	var err error
+
+	a := make([]json.RawMessage, 2)
+	a[0], err = json.Marshal(WincaseNames[w.ID])
+	if err != nil {
+		return nil, err
+	}
+
+	a[1], err = json.Marshal(struct {
+		Threshold int16 `json:"threshold"`
+	}{w.Threshold})
+	if err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(a)
 }
 
 func (op *OverUnderWincase) MarshalTransaction(encoder *transaction.Encoder) error {
@@ -61,6 +108,26 @@ type ScoreYesNoWincase struct {
 	Away uint16
 }
 
+func (w ScoreYesNoWincase) MarshalJSON() ([]byte, error) {
+	var err error
+
+	a := make([]json.RawMessage, 2)
+	a[0], err = json.Marshal(WincaseNames[w.ID])
+	if err != nil {
+		return nil, err
+	}
+
+	a[1], err = json.Marshal(struct {
+		Home uint16 `json:"home"`
+		Away uint16 `json:"away"`
+	}{Home: w.Home, Away: w.Away})
+	if err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(a)
+}
+
 func (op *ScoreYesNoWincase) MarshalTransaction(encoder *transaction.Encoder) error {
 	enc := transaction.NewRollingEncoder(encoder)
 	enc.Encode(int8(op.ID))
@@ -71,6 +138,19 @@ func (op *ScoreYesNoWincase) MarshalTransaction(encoder *transaction.Encoder) er
 
 type YesNoWincase struct {
 	ID WincaseID
+}
+
+func (w YesNoWincase) MarshalJSON() ([]byte, error) {
+	var err error
+
+	a := make([]json.RawMessage, 2)
+	a[0], err = json.Marshal(WincaseNames[w.ID])
+	if err != nil {
+		return nil, err
+	}
+	a[1] = json.RawMessage("{}")
+
+	return json.Marshal(a)
 }
 
 func (op *YesNoWincase) MarshalTransaction(encoder *transaction.Encoder) error {
