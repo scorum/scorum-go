@@ -2,6 +2,9 @@ package types
 
 import (
 	"encoding/json"
+	"github.com/bitly/go-simplejson"
+
+	"errors"
 	"github.com/scorum/scorum-go/encoding/transaction"
 )
 
@@ -23,6 +26,10 @@ const (
 	MarketTotalGoalsAway
 )
 
+var (
+	errUnknownMarket = errors.New("unknown market id")
+)
+
 var MarketNames = map[MarketID]string{
 	MarketResultHome:       "result_home",
 	MarketResultDraw:       "result_draw",
@@ -41,8 +48,67 @@ var MarketNames = map[MarketID]string{
 	MarketTotalGoalsAway:   "total_goals_away",
 }
 
-type Market interface {
+type Market struct {
+	MarketInterface
+}
+
+type MarketInterface interface {
 	transaction.TransactionMarshaller
+}
+
+func (m *Market) UnmarshalJSON(b []byte) error {
+	json, err := simplejson.NewJson(b)
+	if err != nil {
+		return err
+	}
+
+	marketName, err := json.GetIndex(0).String()
+	if err != nil {
+		return err
+	}
+
+	marketID := MarketID(-1)
+	for k, v := range MarketNames {
+		if v == marketName {
+			marketID = k
+		}
+	}
+	if marketID == -1 {
+		return errUnknownMarket
+	}
+
+	marketObj := json.GetIndex(1)
+
+	threshold, err := marketObj.Get("threshold").Int()
+	if err == nil {
+		market := OverUnderMarket{
+			ID:        marketID,
+			Threshold: int16(threshold),
+		}
+		m.MarketInterface = MarketInterface(&market)
+		return nil
+	}
+
+	home, err := marketObj.Get("home").Int()
+	if err == nil {
+		away, err := marketObj.Get("away").Int()
+		if err == nil {
+			market := ScoreYesNoMarket{
+				ID:   marketID,
+				Home: uint16(home),
+				Away: uint16(away),
+			}
+			m.MarketInterface = MarketInterface(&market)
+			return nil
+		}
+	}
+
+	market := YesNoMarket{
+		ID: marketID,
+	}
+	m.MarketInterface = MarketInterface(&market)
+
+	return nil
 }
 
 type MarketID int8

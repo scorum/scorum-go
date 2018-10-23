@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/scorum/scorum-go/encoding/transaction"
 	"github.com/stretchr/testify/require"
@@ -46,10 +47,10 @@ func TestCreateGameOperation_SerializationWithTotalMarket(t *testing.T) {
 		Name:                "game name",
 		StartTime:           Time{&time},
 		AutoResolveDelaySec: 33,
-		Markets: []Market{&OverUnderMarket{
+		Markets: []Market{Market{&OverUnderMarket{
 			ID:        MarketTotal,
 			Threshold: 1000,
-		}},
+		}}},
 	}
 
 	var b bytes.Buffer
@@ -71,70 +72,70 @@ func TestCreateGameOperation_SerializationManyMarkets(t *testing.T) {
 		StartTime:           Time{&time},
 		AutoResolveDelaySec: 33,
 		Markets: []Market{
-			&YesNoMarket{
+			Market{&YesNoMarket{
 				ID: MarketResultHome,
-			},
-			&YesNoMarket{
+			}},
+			Market{&YesNoMarket{
 				ID: MarketResultDraw,
-			},
-			&YesNoMarket{
+			}},
+			Market{&YesNoMarket{
 				ID: MarketResultAway,
-			},
-			&YesNoMarket{
+			}},
+			Market{&YesNoMarket{
 				ID: MarketRoundHome,
-			},
-			&OverUnderMarket{
+			}},
+			Market{&OverUnderMarket{
 				ID:        MarketHandicap,
 				Threshold: -500,
-			},
-			&OverUnderMarket{
+			}},
+			Market{&OverUnderMarket{
 				ID:        MarketHandicap,
 				Threshold: 0,
-			},
-			&OverUnderMarket{
+			}},
+			Market{&OverUnderMarket{
 				ID:        MarketHandicap,
 				Threshold: 1000,
-			},
-			&YesNoMarket{
+			}},
+			Market{&YesNoMarket{
 				ID: MarketCorrectScoreHome,
-			},
-			&YesNoMarket{
+			}},
+			Market{&YesNoMarket{
 				ID: MarketCorrectScoreDraw,
-			},
-			&YesNoMarket{
+			}},
+			Market{&YesNoMarket{
 				ID: MarketCorrectScoreAway,
-			},
-			&ScoreYesNoMarket{
+			}},
+			Market{&ScoreYesNoMarket{
 				ID:   MarketCorrectScore,
 				Home: 1,
 				Away: 0,
-			},
-			&ScoreYesNoMarket{
+			}},
+			Market{&ScoreYesNoMarket{
 				ID:   MarketCorrectScore,
 				Home: 1,
 				Away: 1,
-			},
-			&YesNoMarket{
+			}},
+			Market{&YesNoMarket{
 				ID: MarketGoalHome,
-			},
-			&YesNoMarket{
+			}},
+			Market{&YesNoMarket{
 				ID: MarketGoalBoth,
-			},
-			&YesNoMarket{
+			}},
+			Market{&YesNoMarket{
 				ID: MarketGoalAway,
-			},
-			&OverUnderMarket{
+			}},
+			Market{&OverUnderMarket{
 				ID:        MarketTotal,
 				Threshold: 0,
-			},
-			&OverUnderMarket{
+			}},
+			Market{&OverUnderMarket{
 				ID:        MarketTotal,
 				Threshold: 500,
-			},
-			&OverUnderMarket{
+			}},
+			Market{&OverUnderMarket{
 				ID:        MarketTotal,
 				Threshold: 1000,
-			},
+			}},
 		},
 	}
 
@@ -226,4 +227,43 @@ func TestPostGameResultsOperation_Serialization(t *testing.T) {
 		t,
 		"27e629f9aa6b2c46aa8fa836770e7a7a5f05686f6d6572110003040708e803090cfe0900000a0d0f1001000200110300020012151618000019e803",
 		hex.EncodeToString(b.Bytes()))
+}
+
+func TestCreateGameOperation_UnmarshalJSON(t *testing.T) {
+	testJson := `{
+                                              "uuid":"e629f9aa-6b2c-46aa-8fa8-36770e7a7a5f",
+                                              "moderator":"daddy",
+                                              "name":"doka",
+                                              "start_time":"1970-01-01T00:00:00",
+                                              "auto_resolve_delay_sec":33,
+                                              "game":[
+                                                 "soccer_game",
+                                                 {}
+                                              ],
+                                              "markets":[
+                                                 [
+                                                    "correct_score_home",
+                                                    {}
+                                                 ],
+                                                 [
+                                                    "correct_score",
+                                                    {
+                                                       "home":1,
+                                                       "away":2
+                                                    }
+                                                 ]
+                                              ]
+                                           }`
+	var game CreateGameOperation
+	require.NoError(t, json.Unmarshal([]byte(testJson), &game))
+	require.EqualValues(t, "daddy", game.Moderator)
+	require.EqualValues(t, "doka", game.Name)
+	require.EqualValues(t, 33, game.AutoResolveDelaySec)
+	require.Len(t, game.Markets, 2)
+	require.IsType(t, &YesNoMarket{}, game.Markets[0].MarketInterface)
+	require.EqualValues(t, 5, game.Markets[0].MarketInterface.(*YesNoMarket).ID)
+	require.IsType(t, &ScoreYesNoMarket{}, game.Markets[1].MarketInterface)
+	require.EqualValues(t, game.Markets[1].MarketInterface.(*ScoreYesNoMarket).Home, 1)
+	require.EqualValues(t, game.Markets[1].MarketInterface.(*ScoreYesNoMarket).Away, 2)
+	require.EqualValues(t, 8, game.Markets[1].MarketInterface.(*ScoreYesNoMarket).ID)
 }
