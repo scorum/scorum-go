@@ -2,6 +2,8 @@ package types
 
 import (
 	"encoding/json"
+	"errors"
+	"github.com/bitly/go-simplejson"
 	"github.com/scorum/scorum-go/encoding/transaction"
 )
 
@@ -34,6 +36,10 @@ const (
 	WincaseTotalUnder
 )
 
+var (
+	errUnknownWincase = errors.New("unknown wincase id")
+)
+
 var WincaseNames = map[WincaseID]string{
 	WincaseResultHomeYes:       "result_home::yes",
 	WincaseResultHomeNo:        "result_home::no",
@@ -63,8 +69,67 @@ var WincaseNames = map[WincaseID]string{
 	WincaseTotalUnder:          "total::under",
 }
 
-type Wincase interface {
+type Wincase struct {
+	WincaseInterface
+}
+
+type WincaseInterface interface {
 	transaction.TransactionMarshaller
+}
+
+func (w *Wincase) UnmarshalJSON(b []byte) error {
+	json, err := simplejson.NewJson(b)
+	if err != nil {
+		return err
+	}
+
+	wincaseName, err := json.GetIndex(0).String()
+	if err != nil {
+		return err
+	}
+
+	wincaseID := WincaseID(-1)
+	for k, v := range WincaseNames {
+		if v == wincaseName {
+			wincaseID = k
+		}
+	}
+	if wincaseID == -1 {
+		return errUnknownWincase
+	}
+
+	wincaseObj := json.GetIndex(1)
+
+	threshold, err := wincaseObj.Get("threshold").Int()
+	if err == nil {
+		wincase := OverUnderWincase{
+			ID:        wincaseID,
+			Threshold: int16(threshold),
+		}
+		w.WincaseInterface = WincaseInterface(&wincase)
+		return nil
+	}
+
+	home, err := wincaseObj.Get("home").Int()
+	if err == nil {
+		away, err := wincaseObj.Get("away").Int()
+		if err == nil {
+			wincase := ScoreYesNoWincase{
+				ID:   wincaseID,
+				Home: uint16(home),
+				Away: uint16(away),
+			}
+			w.WincaseInterface = WincaseInterface(&wincase)
+			return nil
+		}
+	}
+
+	wincase := YesNoWincase{
+		ID: wincaseID,
+	}
+	w.WincaseInterface = WincaseInterface(&wincase)
+
+	return nil
 }
 
 type WincaseID int8

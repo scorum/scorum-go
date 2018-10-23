@@ -156,66 +156,83 @@ func TestPostGameResultsOperation_Serialization(t *testing.T) {
 		UUID:      uuid,
 		Moderator: "homer",
 		Wincases: []Wincase{
-			&YesNoWincase{
-				ID: WincaseResultHomeYes,
-			},
-			&YesNoWincase{
-				ID: WincaseResultDrawNo,
-			},
-			&YesNoWincase{
-				ID: WincaseResultAwayYes,
-			},
-			&YesNoWincase{
-				ID: WincaseRoundHomeNo,
-			},
-			&OverUnderWincase{
-				ID:        WincaseHandicapOver,
-				Threshold: 1000,
-			},
-			&OverUnderWincase{
-				ID:        WincaseHandicapUnder,
-				Threshold: -500,
-			},
-			&OverUnderWincase{
-				ID:        WincaseHandicapUnder,
-				Threshold: 0,
-			},
-			&YesNoWincase{
-				ID: WincaseCorrectScoreHomeYes,
-			},
-			&YesNoWincase{
-				ID: WincaseCorrectScoreDrawNo,
-			},
-			&YesNoWincase{
-				ID: WincaseCorrectScoreAwayNo,
-			},
-			&ScoreYesNoWincase{
-				ID:   WincaseCorrectScoreYes,
-				Home: 1,
-				Away: 2,
-			},
-			&ScoreYesNoWincase{
-				ID:   WincaseCorrectScoreNo,
-				Home: 3,
-				Away: 2,
-			},
-			&YesNoWincase{
-				ID: WincaseGoalHomeYes,
-			},
-			&YesNoWincase{
-				ID: WincaseGoalBothNo,
-			},
-			&YesNoWincase{
-				ID: WincaseGoalAwayYes,
-			},
-			&OverUnderWincase{
-				ID:        WincaseTotalOver,
-				Threshold: 0,
-			},
-			&OverUnderWincase{
-				ID:        WincaseTotalUnder,
-				Threshold: 1000,
-			},
+			Wincase{
+				&YesNoWincase{
+					ID: WincaseResultHomeYes,
+				}},
+			Wincase{
+				&YesNoWincase{
+					ID: WincaseResultDrawNo,
+				}},
+			Wincase{
+				&YesNoWincase{
+					ID: WincaseResultAwayYes,
+				}},
+			Wincase{
+				&YesNoWincase{
+					ID: WincaseRoundHomeNo,
+				}},
+			Wincase{
+				&OverUnderWincase{
+					ID:        WincaseHandicapOver,
+					Threshold: 1000,
+				}},
+			Wincase{
+				&OverUnderWincase{
+					ID:        WincaseHandicapUnder,
+					Threshold: -500,
+				}},
+			Wincase{
+				&OverUnderWincase{
+					ID:        WincaseHandicapUnder,
+					Threshold: 0,
+				}},
+			Wincase{
+				&YesNoWincase{
+					ID: WincaseCorrectScoreHomeYes,
+				}},
+			Wincase{
+				&YesNoWincase{
+					ID: WincaseCorrectScoreDrawNo,
+				}},
+			Wincase{
+				&YesNoWincase{
+					ID: WincaseCorrectScoreAwayNo,
+				}},
+			Wincase{
+				&ScoreYesNoWincase{
+					ID:   WincaseCorrectScoreYes,
+					Home: 1,
+					Away: 2,
+				}},
+			Wincase{
+				&ScoreYesNoWincase{
+					ID:   WincaseCorrectScoreNo,
+					Home: 3,
+					Away: 2,
+				}},
+			Wincase{
+				&YesNoWincase{
+					ID: WincaseGoalHomeYes,
+				}},
+			Wincase{
+				&YesNoWincase{
+					ID: WincaseGoalBothNo,
+				}},
+			Wincase{
+				&YesNoWincase{
+					ID: WincaseGoalAwayYes,
+				}},
+			Wincase{
+				&OverUnderWincase{
+					ID:        WincaseTotalOver,
+					Threshold: 0,
+				}},
+			Wincase{
+				&OverUnderWincase{
+					ID:        WincaseTotalUnder,
+					Threshold: 1000,
+				}},
 		},
 	}
 	var b bytes.Buffer

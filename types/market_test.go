@@ -13,7 +13,7 @@ const (
 	testInvalidMarket        = `["doka_market", {}]`
 )
 
-func TestMarket_validScoreMarket_UnmarshalJSON(t *testing.T) {
+func TestMarket_ValidScoreMarket_UnmarshalJSON(t *testing.T) {
 	var market Market
 	require.NoError(t, json.Unmarshal([]byte(testValidScoreMarket), &market))
 	require.IsType(t, &ScoreYesNoMarket{}, market.MarketInterface)
@@ -22,7 +22,7 @@ func TestMarket_validScoreMarket_UnmarshalJSON(t *testing.T) {
 	require.EqualValues(t, 8, market.MarketInterface.(*ScoreYesNoMarket).ID)
 }
 
-func TestMarket_validThresholdMarket_UnmarshalJSON(t *testing.T) {
+func TestMarket_ValidThresholdMarket_UnmarshalJSON(t *testing.T) {
 	var market Market
 	require.NoError(t, json.Unmarshal([]byte(testValidThresholdMarket), &market))
 	require.IsType(t, &OverUnderMarket{}, market.MarketInterface)
@@ -30,14 +30,14 @@ func TestMarket_validThresholdMarket_UnmarshalJSON(t *testing.T) {
 	require.EqualValues(t, 8, market.MarketInterface.(*OverUnderMarket).ID)
 }
 
-func TestMarket_yesNoMarket_UnmarshalJSON(t *testing.T) {
+func TestMarket_YesNoMarket_UnmarshalJSON(t *testing.T) {
 	var market Market
 	require.NoError(t, json.Unmarshal([]byte(testValidYesNoMarket), &market))
 	require.IsType(t, &YesNoMarket{}, market.MarketInterface)
 	require.EqualValues(t, 8, market.MarketInterface.(*YesNoMarket).ID)
 }
 
-func TestMarket_invalidMarket_UnmarshalJSON(t *testing.T) {
+func TestMarket_InvalidMarket_UnmarshalJSON(t *testing.T) {
 	var market Market
 	require.Error(t, json.Unmarshal([]byte(testInvalidMarket), &market))
 }
