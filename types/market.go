@@ -57,6 +57,7 @@ type MarketInterface interface {
 
 	GetName() string
 	GetID() int8
+	GetMeta() (json.RawMessage, error)
 }
 
 func (m *Market) UnmarshalJSON(b []byte) error {
@@ -156,6 +157,16 @@ func (op *OverUnderMarket) GetID() int8 {
 	return int8(op.ID)
 }
 
+func (op *OverUnderMarket) GetMeta() (json.RawMessage, error) {
+	s := struct {
+		Threshold int16 `json:"threshold"`
+	}{
+		Threshold: op.Threshold,
+	}
+
+	return json.Marshal(s)
+}
+
 type ScoreYesNoMarket struct {
 	ID MarketID
 
@@ -199,6 +210,18 @@ func (op *ScoreYesNoMarket) GetID() int8 {
 	return int8(op.ID)
 }
 
+func (op *ScoreYesNoMarket) GetMeta() (json.RawMessage, error) {
+	s := struct {
+		Home uint16 `json:"home"`
+		Away uint16 `json:"away"`
+	}{
+		Home: op.Home,
+		Away: op.Away,
+	}
+
+	return json.Marshal(s)
+}
+
 type YesNoMarket struct {
 	ID MarketID
 }
@@ -228,4 +251,8 @@ func (op *YesNoMarket) GetName() string {
 
 func (op *YesNoMarket) GetID() int8 {
 	return int8(op.ID)
+}
+
+func (op *YesNoMarket) GetMeta() (json.RawMessage, error) {
+	return json.Marshal(struct{}{})
 }
