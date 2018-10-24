@@ -54,6 +54,9 @@ type Market struct {
 
 type MarketInterface interface {
 	transaction.TransactionMarshaller
+
+	GetName() string
+	GetID() int8
 }
 
 func (m *Market) UnmarshalJSON(b []byte) error {
@@ -145,6 +148,14 @@ func (op *OverUnderMarket) MarshalTransaction(encoder *transaction.Encoder) erro
 	return enc.Err()
 }
 
+func (op *OverUnderMarket) GetName() string {
+	return MarketNames[op.ID]
+}
+
+func (op *OverUnderMarket) GetID() int8 {
+	return int8(op.ID)
+}
+
 type ScoreYesNoMarket struct {
 	ID MarketID
 
@@ -180,6 +191,14 @@ func (op *ScoreYesNoMarket) MarshalTransaction(encoder *transaction.Encoder) err
 	return enc.Err()
 }
 
+func (op *ScoreYesNoMarket) GetName() string {
+	return MarketNames[op.ID]
+}
+
+func (op *ScoreYesNoMarket) GetID() int8 {
+	return int8(op.ID)
+}
+
 type YesNoMarket struct {
 	ID MarketID
 }
@@ -201,4 +220,12 @@ func (op *YesNoMarket) MarshalTransaction(encoder *transaction.Encoder) error {
 	enc := transaction.NewRollingEncoder(encoder)
 	enc.Encode(int8(op.ID))
 	return enc.Err()
+}
+
+func (op *YesNoMarket) GetName() string {
+	return MarketNames[op.ID]
+}
+
+func (op *YesNoMarket) GetID() int8 {
+	return int8(op.ID)
 }

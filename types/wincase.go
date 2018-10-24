@@ -75,6 +75,9 @@ type Wincase struct {
 
 type WincaseInterface interface {
 	transaction.TransactionMarshaller
+
+	GetName() string
+	GetID() int8
 }
 
 func (w *Wincase) UnmarshalJSON(b []byte) error {
@@ -166,6 +169,14 @@ func (op *OverUnderWincase) MarshalTransaction(encoder *transaction.Encoder) err
 	return enc.Err()
 }
 
+func (op *OverUnderWincase) GetName() string {
+	return WincaseNames[op.ID]
+}
+
+func (op *OverUnderWincase) GetID() int8 {
+	return int8(op.ID)
+}
+
 type ScoreYesNoWincase struct {
 	ID WincaseID
 
@@ -201,6 +212,14 @@ func (op *ScoreYesNoWincase) MarshalTransaction(encoder *transaction.Encoder) er
 	return enc.Err()
 }
 
+func (op *ScoreYesNoWincase) GetName() string {
+	return WincaseNames[op.ID]
+}
+
+func (op *ScoreYesNoWincase) GetID() int8 {
+	return int8(op.ID)
+}
+
 type YesNoWincase struct {
 	ID WincaseID
 }
@@ -222,4 +241,12 @@ func (op *YesNoWincase) MarshalTransaction(encoder *transaction.Encoder) error {
 	enc := transaction.NewRollingEncoder(encoder)
 	enc.Encode(int8(op.ID))
 	return enc.Err()
+}
+
+func (op *YesNoWincase) GetName() string {
+	return WincaseNames[op.ID]
+}
+
+func (op *YesNoWincase) GetID() int8 {
+	return int8(op.ID)
 }
