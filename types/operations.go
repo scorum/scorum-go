@@ -404,8 +404,8 @@ func (op *CreateGameOperation) MarshalTransaction(encoder *transaction.Encoder) 
 	enc.Encode(op.Name)
 	op.StartTime.MarshalTransaction(encoder)
 	enc.Encode(op.AutoResolveDelaySec)
-	enc.Encode(int8(op.GameType))
-	enc.Encode(int8(len(op.Markets)))
+	enc.Encode(uint8(op.GameType))
+	enc.EncodeUVarint(uint64((len(op.Markets))))
 	for _, m := range op.Markets {
 		enc.Encode(m)
 	}
@@ -413,7 +413,7 @@ func (op *CreateGameOperation) MarshalTransaction(encoder *transaction.Encoder) 
 }
 
 type CancelGameOperation struct {
-	UUID      uuid.UUID `json:"UUID"`
+	UUID      uuid.UUID `json:"uuid"`
 	Moderator string    `json:"moderator"`
 }
 

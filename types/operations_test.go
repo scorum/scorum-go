@@ -24,6 +24,7 @@ func TestCreateGameOperation_SerializationWithoutMarkets(t *testing.T) {
 		Moderator:           "admin",
 		Name:                "game name",
 		StartTime:           Time{&time},
+		GameType:            SoccerGameType,
 		AutoResolveDelaySec: 33,
 	}
 
