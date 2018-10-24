@@ -15,7 +15,7 @@ var (
 	errUnsupportedGameType = errors.New("unsupported game type")
 )
 
-type GameType int8
+type GameType uint8
 
 var GameTypeNames = map[GameType]string{
 	SoccerGameType: "soccer_game",

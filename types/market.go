@@ -140,7 +140,7 @@ func (m OverUnderMarket) MarshalJSON() ([]byte, error) {
 
 func (op *OverUnderMarket) MarshalTransaction(encoder *transaction.Encoder) error {
 	enc := transaction.NewRollingEncoder(encoder)
-	enc.Encode(int8(op.ID))
+	enc.Encode(uint8(op.ID))
 	enc.Encode(op.Threshold)
 	return enc.Err()
 }
@@ -174,7 +174,7 @@ func (m ScoreYesNoMarket) MarshalJSON() ([]byte, error) {
 
 func (op *ScoreYesNoMarket) MarshalTransaction(encoder *transaction.Encoder) error {
 	enc := transaction.NewRollingEncoder(encoder)
-	enc.Encode(int8(op.ID))
+	enc.Encode(uint8(op.ID))
 	enc.Encode(op.Home)
 	enc.Encode(op.Away)
 	return enc.Err()
@@ -199,6 +199,6 @@ func (m YesNoMarket) MarshalJSON() ([]byte, error) {
 
 func (op *YesNoMarket) MarshalTransaction(encoder *transaction.Encoder) error {
 	enc := transaction.NewRollingEncoder(encoder)
-	enc.Encode(int8(op.ID))
+	enc.Encode(uint8(op.ID))
 	return enc.Err()
 }
