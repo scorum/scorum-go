@@ -153,9 +153,7 @@ func (w OverUnderWincase) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	a[1], err = json.Marshal(struct {
-		Threshold int16 `json:"threshold"`
-	}{w.Threshold})
+	a[1], err = w.GetMeta()
 	if err != nil {
 		return nil, err
 	}
@@ -204,10 +202,7 @@ func (w ScoreYesNoWincase) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	a[1], err = json.Marshal(struct {
-		Home uint16 `json:"home"`
-		Away uint16 `json:"away"`
-	}{Home: w.Home, Away: w.Away})
+	a[1], err = w.GetMeta()
 	if err != nil {
 		return nil, err
 	}
@@ -255,7 +250,10 @@ func (w YesNoWincase) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	a[1] = json.RawMessage("{}")
+	a[1], err = w.GetMeta()
+	if err != nil {
+		return nil, err
+	}
 
 	return json.Marshal(a)
 }

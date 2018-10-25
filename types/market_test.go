@@ -11,6 +11,10 @@ const (
 	testValidThresholdMarket = `["correct_score",{"threshold":500}]`
 	testValidYesNoMarket     = `["correct_score",{}]`
 	testInvalidMarket        = `["doka_market", {}]`
+
+	testThresholdMeta = `{"threshold":500}`
+	testScoreMeta     = `{"home":1,"away":2}`
+	testYesNoMeta     = `{}`
 )
 
 func TestMarket_ValidScoreMarket_UnmarshalJSON(t *testing.T) {
@@ -40,4 +44,30 @@ func TestMarket_YesNoMarket_UnmarshalJSON(t *testing.T) {
 func TestMarket_InvalidMarket_UnmarshalJSON(t *testing.T) {
 	var market Market
 	require.Error(t, json.Unmarshal([]byte(testInvalidMarket), &market))
+}
+
+func TestOverUnderMarket_GetMeta(t *testing.T) {
+	m := OverUnderMarket{
+		Threshold: 500,
+	}
+	meta, err := m.GetMeta()
+	require.NoError(t, err)
+	require.EqualValues(t, testThresholdMeta, meta)
+}
+
+func TestScoreYesNoMarket_GetMeta(t *testing.T) {
+	m := ScoreYesNoMarket{
+		Home: 1,
+		Away: 2,
+	}
+	meta, err := m.GetMeta()
+	require.NoError(t, err)
+	require.EqualValues(t, testScoreMeta, meta)
+}
+
+func TestYesNoMarket_GetMeta(t *testing.T) {
+	m := YesNoMarket{}
+	meta, err := m.GetMeta()
+	require.NoError(t, err)
+	require.EqualValues(t, testYesNoMeta, meta)
 }

@@ -132,9 +132,7 @@ func (m OverUnderMarket) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	a[1], err = json.Marshal(struct {
-		Threshold int16 `json:"threshold"`
-	}{m.Threshold})
+	a[1], err = m.GetMeta()
 	if err != nil {
 		return nil, err
 	}
@@ -183,10 +181,7 @@ func (m ScoreYesNoMarket) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	a[1], err = json.Marshal(struct {
-		Home uint16 `json:"home"`
-		Away uint16 `json:"away"`
-	}{Home: m.Home, Away: m.Away})
+	a[1], err = m.GetMeta()
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +229,10 @@ func (m YesNoMarket) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	a[1] = json.RawMessage("{}")
+	a[1], err = m.GetMeta()
+	if err != nil {
+		return nil, err
+	}
 
 	return json.Marshal(a)
 }

@@ -44,7 +44,7 @@ func (g *GameType) UnmarshalJSON(b []byte) error {
 	gName := gt[0].(string)
 	for k, v := range GameTypeNames {
 		if v == gName {
-			reflect.Indirect(reflect.ValueOf(g)).SetInt(int64(k))
+			reflect.Indirect(reflect.ValueOf(g)).SetUint(uint64(k))
 			return nil
 		}
 	}

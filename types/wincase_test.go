@@ -41,3 +41,24 @@ func TestWincase_Invalid_UnmarshalJSON(t *testing.T) {
 	var wincase Wincase
 	require.Error(t, json.Unmarshal([]byte(testInvalidWincase), &wincase))
 }
+
+func TestOverUnderWincase_GetMeta(t *testing.T) {
+	m := OverUnderWincase{Threshold: 500}
+	meta, err := m.GetMeta()
+	require.NoError(t, err)
+	require.EqualValues(t, testThresholdMeta, meta)
+}
+
+func TestScoreYesNoWincase_GetMeta(t *testing.T) {
+	m := ScoreYesNoWincase{Home: 1, Away: 2}
+	meta, err := m.GetMeta()
+	require.NoError(t, err)
+	require.EqualValues(t, testScoreMeta, meta)
+}
+
+func TestYesNoWincase_GetMeta(t *testing.T) {
+	m := YesNoWincase{}
+	meta, err := m.GetMeta()
+	require.NoError(t, err)
+	require.EqualValues(t, testYesNoMeta, meta)
+}
