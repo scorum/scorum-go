@@ -8,14 +8,53 @@ import (
 
 const (
 	testValidScoreMarket     = `["correct_score",{"home":1,"away":2}]`
-	testValidThresholdMarket = `["correct_score",{"threshold":500}]`
-	testValidYesNoMarket     = `["correct_score",{}]`
+	testValidThresholdMarket = `["handicap",{"threshold":500}]`
+	testValidYesNoMarket     = `["result_draw",{}]`
 	testInvalidMarket        = `["doka_market", {}]`
 
 	testThresholdMeta = `{"threshold":500}`
 	testScoreMeta     = `{"home":1,"away":2}`
 	testYesNoMeta     = `{}`
 )
+
+func TestMarket_CorrectScore_MarshalJSON(t *testing.T) {
+	market := Market{
+		MarketInterface: &ScoreYesNoMarket{
+			ID:   MarketCorrectScore,
+			Home: 1,
+			Away: 2,
+		},
+	}
+
+	j, err := json.Marshal(market)
+	require.NoError(t, err)
+	require.EqualValues(t, string(j), testValidScoreMarket)
+}
+
+func TestMarket_Handicap_MarshalJSON(t *testing.T) {
+	market := Market{
+		MarketInterface: &OverUnderMarket{
+			ID:        MarketHandicap,
+			Threshold: 500,
+		},
+	}
+
+	j, err := json.Marshal(market)
+	require.NoError(t, err)
+	require.EqualValues(t, string(j), testValidThresholdMarket)
+}
+
+func TestMarket_Result_MarshalJSON(t *testing.T) {
+	market := Market{
+		MarketInterface: &YesNoMarket{
+			ID: MarketResultDraw,
+		},
+	}
+
+	j, err := json.Marshal(market)
+	require.NoError(t, err)
+	require.EqualValues(t, string(j), testValidYesNoMarket)
+}
 
 func TestMarket_ValidScoreMarket_UnmarshalJSON(t *testing.T) {
 	var market Market
@@ -31,14 +70,14 @@ func TestMarket_ValidThresholdMarket_UnmarshalJSON(t *testing.T) {
 	require.NoError(t, json.Unmarshal([]byte(testValidThresholdMarket), &market))
 	require.IsType(t, &OverUnderMarket{}, market.MarketInterface)
 	require.EqualValues(t, 500, market.MarketInterface.(*OverUnderMarket).Threshold)
-	require.EqualValues(t, 8, market.MarketInterface.(*OverUnderMarket).ID)
+	require.EqualValues(t, MarketHandicap, market.MarketInterface.(*OverUnderMarket).ID)
 }
 
 func TestMarket_YesNoMarket_UnmarshalJSON(t *testing.T) {
 	var market Market
 	require.NoError(t, json.Unmarshal([]byte(testValidYesNoMarket), &market))
 	require.IsType(t, &YesNoMarket{}, market.MarketInterface)
-	require.EqualValues(t, 8, market.MarketInterface.(*YesNoMarket).ID)
+	require.EqualValues(t, MarketResultDraw, market.MarketInterface.(*YesNoMarket).ID)
 }
 
 func TestMarket_InvalidMarket_UnmarshalJSON(t *testing.T) {

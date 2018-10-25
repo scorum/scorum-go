@@ -81,6 +81,10 @@ type WincaseInterface interface {
 	GetMeta() (json.RawMessage, error)
 }
 
+func (w Wincase) MarshalJSON() ([]byte, error) {
+	return json.Marshal(w.WincaseInterface)
+}
+
 func (w *Wincase) UnmarshalJSON(b []byte) error {
 	json, err := simplejson.NewJson(b)
 	if err != nil {

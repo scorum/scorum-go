@@ -7,11 +7,50 @@ import (
 )
 
 const (
-	testCorrectScoreWincase = `["correct_score::yes", { "home": 1, "away": 2 }]`
-	testHandicapWincase     = `[ "handicap::over", { "threshold": 1000 } ]`
-	testResultWincase       = `[ "result_draw::no", {} ]`
-	testInvalidWincase      = `[ "doka_trade::no_thx", {} ]`
+	testCorrectScoreWincase = `["correct_score::yes",{"home":1,"away":2}]`
+	testHandicapWincase     = `["handicap::over",{"threshold":1000}]`
+	testResultWincase       = `["result_draw::no",{}]`
+	testInvalidWincase      = `["doka_trade::no_thx",{}]`
 )
+
+func TestWincase_CorrectScore_MarshalJSON(t *testing.T) {
+	wincase := Wincase{
+		WincaseInterface: &ScoreYesNoWincase{
+			ID:   WincaseCorrectScoreYes,
+			Home: 1,
+			Away: 2,
+		},
+	}
+
+	j, err := json.Marshal(wincase)
+	require.NoError(t, err)
+	require.EqualValues(t, string(j), testCorrectScoreWincase)
+}
+
+func TestWincase_Handicap_MarshalJSON(t *testing.T) {
+	wincase := Wincase{
+		WincaseInterface: &OverUnderWincase{
+			ID:        WincaseHandicapOver,
+			Threshold: 1000,
+		},
+	}
+
+	j, err := json.Marshal(wincase)
+	require.NoError(t, err)
+	require.EqualValues(t, string(j), testHandicapWincase)
+}
+
+func TestWincase_Result_MarshalJSON(t *testing.T) {
+	wincase := Wincase{
+		WincaseInterface: &YesNoWincase{
+			ID: WincaseResultDrawNo,
+		},
+	}
+
+	j, err := json.Marshal(wincase)
+	require.NoError(t, err)
+	require.EqualValues(t, string(j), testResultWincase)
+}
 
 func TestWincase_CorrectScore_UnmarshalJSON(t *testing.T) {
 	var wincase Wincase

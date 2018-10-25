@@ -60,6 +60,10 @@ type MarketInterface interface {
 	GetMeta() (json.RawMessage, error)
 }
 
+func (m Market) MarshalJSON() ([]byte, error) {
+	return json.Marshal(m.MarketInterface)
+}
+
 func (m *Market) UnmarshalJSON(b []byte) error {
 	json, err := simplejson.NewJson(b)
 	if err != nil {
