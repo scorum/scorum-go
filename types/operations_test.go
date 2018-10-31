@@ -22,7 +22,7 @@ func TestCreateGameOperation_SerializationWithoutMarkets(t *testing.T) {
 	op := CreateGameOperation{
 		UUID:                uuid,
 		Moderator:           "admin",
-		Name:                "game name",
+		JsonMetadata:        "{}",
 		StartTime:           Time{&time},
 		GameType:            SoccerGameType,
 		AutoResolveDelaySec: 33,
@@ -32,7 +32,7 @@ func TestCreateGameOperation_SerializationWithoutMarkets(t *testing.T) {
 	encoder := transaction.NewEncoder(&b)
 	require.NoError(t, op.MarshalTransaction(encoder))
 
-	require.EqualValues(t, "23e629f9aa6b2c46aa8fa836770e7a7a5f0561646d696e0967616d65206e616d659b2a645b210000000000", hex.EncodeToString(b.Bytes()))
+	require.EqualValues(t, "23e629f9aa6b2c46aa8fa836770e7a7a5f0561646d696e027b7d9b2a645b210000000000", hex.EncodeToString(b.Bytes()))
 }
 
 func TestCreateGameOperation_SerializationWithTotalMarket(t *testing.T) {
@@ -45,7 +45,7 @@ func TestCreateGameOperation_SerializationWithTotalMarket(t *testing.T) {
 	op := CreateGameOperation{
 		UUID:                uuid,
 		Moderator:           "admin",
-		Name:                "game name",
+		JsonMetadata:        "{}",
 		StartTime:           Time{&time},
 		AutoResolveDelaySec: 33,
 		Markets: []Market{Market{&OverUnderMarket{
@@ -57,7 +57,7 @@ func TestCreateGameOperation_SerializationWithTotalMarket(t *testing.T) {
 	var b bytes.Buffer
 	encoder := transaction.NewEncoder(&b)
 	require.NoError(t, op.MarshalTransaction(encoder))
-	require.EqualValues(t, "23e629f9aa6b2c46aa8fa836770e7a7a5f0561646d696e0967616d65206e616d659b2a645b2100000000010ce803", hex.EncodeToString(b.Bytes()))
+	require.EqualValues(t, "23e629f9aa6b2c46aa8fa836770e7a7a5f0561646d696e027b7d9b2a645b2100000000010ce803", hex.EncodeToString(b.Bytes()))
 }
 
 func TestCreateGameOperation_SerializationManyMarkets(t *testing.T) {
@@ -69,7 +69,7 @@ func TestCreateGameOperation_SerializationManyMarkets(t *testing.T) {
 	op := CreateGameOperation{
 		UUID:                uuid,
 		Moderator:           "moderator_name",
-		Name:                "game_name",
+		JsonMetadata:        "{}",
 		StartTime:           Time{&time},
 		AutoResolveDelaySec: 33,
 		Markets: []Market{
@@ -145,7 +145,7 @@ func TestCreateGameOperation_SerializationManyMarkets(t *testing.T) {
 	require.NoError(t, op.MarshalTransaction(encoder))
 	require.EqualValues(
 		t,
-		"23e629f9aa6b2c46aa8fa836770e7a7a5f0e6d6f64657261746f725f6e616d650967616d655f6e616d6518541e5721000000001200010203040cfe04000004e80305060708010000000801000100090a0b0c00000cf4010ce803",
+		"23e629f9aa6b2c46aa8fa836770e7a7a5f0e6d6f64657261746f725f6e616d65027b7d18541e5721000000001200010203040cfe04000004e80305060708010000000801000100090a0b0c00000cf4010ce803",
 		hex.EncodeToString(b.Bytes()))
 }
 
@@ -251,7 +251,7 @@ func TestCreateGameOperation_UnmarshalJSON(t *testing.T) {
 	testJson := `{
                                               "uuid":"e629f9aa-6b2c-46aa-8fa8-36770e7a7a5f",
                                               "moderator":"daddy",
-                                              "name":"doka",
+                                              "json_metadata":"{}",
                                               "start_time":"1970-01-01T00:00:00",
                                               "auto_resolve_delay_sec":33,
                                               "game":[
@@ -275,7 +275,7 @@ func TestCreateGameOperation_UnmarshalJSON(t *testing.T) {
 	var game CreateGameOperation
 	require.NoError(t, json.Unmarshal([]byte(testJson), &game))
 	require.EqualValues(t, "daddy", game.Moderator)
-	require.EqualValues(t, "doka", game.Name)
+	require.EqualValues(t, "{}", game.JsonMetadata)
 	require.EqualValues(t, 33, game.AutoResolveDelaySec)
 	require.Len(t, game.Markets, 2)
 	require.IsType(t, &YesNoMarket{}, game.Markets[0].MarketInterface)

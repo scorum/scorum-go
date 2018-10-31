@@ -385,7 +385,7 @@ func (op *DelegateScorumpowerOperation) Type() OpType {
 type CreateGameOperation struct {
 	UUID                uuid.UUID `json:"uuid"`
 	Moderator           string    `json:"moderator"`
-	Name                string    `json:"name"`
+	JsonMetadata        string    `json:"json_metadata"`
 	GameType            GameType  `json:"game"`
 	StartTime           Time      `json:"start_time"`
 	AutoResolveDelaySec uint32    `json:"auto_resolve_delay_sec"`
@@ -401,7 +401,7 @@ func (op *CreateGameOperation) MarshalTransaction(encoder *transaction.Encoder) 
 	enc.EncodeUVarint(uint64(op.Type().Code()))
 	enc.EncodeUUID(op.UUID)
 	enc.Encode(op.Moderator)
-	enc.Encode(op.Name)
+	enc.Encode(op.JsonMetadata)
 	op.StartTime.MarshalTransaction(encoder)
 	enc.Encode(op.AutoResolveDelaySec)
 	enc.Encode(uint8(op.GameType))
