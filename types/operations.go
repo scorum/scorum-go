@@ -470,8 +470,8 @@ func (op *PostGameResultsOperation) MarshalTransaction(encoder *transaction.Enco
 }
 
 type Odds struct {
-	Numerator   int16 `json:"numerator"`
-	Denominator int16 `json:"denominator"`
+	Numerator   uint32 `json:"numerator"`
+	Denominator uint32 `json:"denominator"`
 }
 
 type PostBetOperation struct {
