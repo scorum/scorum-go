@@ -511,14 +511,14 @@ func (op *BetsMatchedVirtualOperation) Type() OpType {
 	return BetsMatched
 }
 
-type GameStatus uint8
+type GameStatus string
 
 const (
-	GameStatusCreated = iota
-	GameStatusStarted
-	GameStatusFinished
-	GameStatusResolved
-	GameStatusExpired
+	GameStatusCreated  = "created"
+	GameStatusStarted  = "started"
+	GameStatusFinished = "finished"
+	GameStatusResolved = "resolved"
+	GameStatusExpired  = "expired"
 )
 
 type GameStatusChangedVirtualOperation struct {
