@@ -3,9 +3,10 @@ package blockchain_history
 import (
 	"testing"
 
+	"math"
+
 	"github.com/scorum/scorum-go/transport/http"
 	"github.com/stretchr/testify/require"
-	"math"
 )
 
 const nodeHTTPS = "https://testnet.scorum.com"
@@ -68,4 +69,32 @@ func TestGetBlocksHistory(t *testing.T) {
 		require.Error(t, err)
 	})
 
+}
+
+func TestGetBlocks(t *testing.T) {
+	transport := http.NewTransport(nodeHTTPS)
+	api := NewAPI(transport)
+
+	t.Run("from beginning", func(t *testing.T) {
+		blocks, err := api.GetBlocks(100, 100)
+		require.NoError(t, err)
+		require.Len(t, blocks, 100)
+		for _, v := range blocks {
+			require.NotEmpty(t, v.Operations)
+		}
+	})
+
+	t.Run("from end", func(t *testing.T) {
+		blocks, err := api.GetBlocks(math.MaxUint32, 100)
+		require.NoError(t, err)
+		require.NotEmpty(t, blocks)
+		for _, v := range blocks {
+			require.NotEmpty(t, v.Operations)
+		}
+	})
+
+	t.Run("exceeded limit", func(t *testing.T) {
+		_, err := api.GetBlocks(math.MaxUint32, 2000)
+		require.Error(t, err)
+	})
 }

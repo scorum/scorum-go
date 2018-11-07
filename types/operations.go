@@ -343,7 +343,7 @@ func (op *CommentOptionsOperation) Type() OpType {
 
 type ProducerRewardOperation struct {
 	Producer    string `json:"producer"`
-	Scorumpower string `json:"scorumpower"`
+	Scorumpower string `json:"reward"`
 }
 
 func (op *ProducerRewardOperation) Type() OpType {
