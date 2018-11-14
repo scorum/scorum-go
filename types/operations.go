@@ -489,7 +489,7 @@ func (op *PostBetOperation) Type() OpType {
 }
 
 type CancelPendingBetsOperation struct {
-	BetIDs []uuid.UUID `json:"bet_ids"`
+	BetIDs []uuid.UUID `json:"bet_uuids"`
 	Better string      `json:"better"`
 }
 
