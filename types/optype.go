@@ -134,7 +134,7 @@ const (
 	UpdateGameStartTime OpType = "update_game_start_time"
 	PostGameResults     OpType = "post_game_results"
 	PostBet             OpType = "post_bet"
-	CancelPendingBets   OpType = "cancel_pending_bets_operation"
+	CancelPendingBets   OpType = "cancel_pending_bets"
 
 	// virtual operations
 	AuthorReward                OpType = "author_reward"
