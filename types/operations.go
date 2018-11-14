@@ -151,6 +151,7 @@ var knownOperations = map[OpType]reflect.Type{
 	CancelPendingBets:                 reflect.TypeOf(CancelPendingBetsOperation{}),
 	BetsMatched:                       reflect.TypeOf(BetsMatchedVirtualOperation{}),
 	GameStatusChanged:                 reflect.TypeOf(GameStatusChangedVirtualOperation{}),
+	BetResolved:                       reflect.TypeOf(BetResolvedOperation{}),
 }
 
 // UnknownOperation
@@ -514,11 +515,11 @@ func (op *BetsMatchedVirtualOperation) Type() OpType {
 type GameStatus string
 
 const (
-	GameStatusCreated  = "created"
-	GameStatusStarted  = "started"
-	GameStatusFinished = "finished"
-	GameStatusResolved = "resolved"
-	GameStatusExpired  = "expired"
+	GameStatusCreated  GameStatus = "created"
+	GameStatusStarted  GameStatus = "started"
+	GameStatusFinished GameStatus = "finished"
+	GameStatusResolved GameStatus = "resolved"
+	GameStatusExpired  GameStatus = "expired"
 )
 
 type GameStatusChangedVirtualOperation struct {
@@ -529,4 +530,18 @@ type GameStatusChangedVirtualOperation struct {
 
 func (op *GameStatusChangedVirtualOperation) Type() OpType {
 	return GameStatusChanged
+}
+
+type BetResolveKind string
+
+type BetResolvedOperation struct {
+	GameUUID uuid.UUID      `json:"game_uuid"`
+	Better   string         `json:"better"`
+	BetUUID  uuid.UUID      `json:"bet_uuid"`
+	Income   Asset          `json:"income"`
+	Kind     BetResolveKind `json:"kind"`
+}
+
+func (op *BetResolvedOperation) Type() OpType {
+	return BetResolved
 }

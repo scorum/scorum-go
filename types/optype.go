@@ -88,6 +88,10 @@ var opTypes = []OpType{
 	ClosingBudget,
 	BetsMatched,
 	GameStatusChanged,
+	BetResolved,
+	BetCancelled,
+	BetRestored,
+	BetUpdated,
 }
 
 const (
@@ -163,4 +167,9 @@ const (
 	ClosingBudget                        OpType = "closing_budget"
 	BetsMatched                          OpType = "bets_matched"
 	GameStatusChanged                    OpType = "game_status_changed"
+
+	BetResolved  OpType = "bet_resolved"
+	BetCancelled OpType = "bet_cancelled"
+	BetRestored  OpType = "bet_restored"
+	BetUpdated   OpType = "bet_updated"
 )
