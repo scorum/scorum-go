@@ -534,6 +534,11 @@ func (op *GameStatusChangedVirtualOperation) Type() OpType {
 
 type BetResolveKind string
 
+const (
+	WinBetResolveKind  = "win"
+	DrawBetResolveKind = "draw"
+)
+
 type BetResolvedOperation struct {
 	GameUUID uuid.UUID      `json:"game_uuid"`
 	Better   string         `json:"better"`
