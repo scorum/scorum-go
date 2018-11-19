@@ -11,6 +11,7 @@ import (
 const nodeHTTPS = "https://testnet.scorum.com"
 
 func TestGetGameWinners(t *testing.T) {
+	t.Skip("need to start and finish game to get results")
 	transport := http.NewTransport(nodeHTTPS)
 	api := NewAPI(transport)
 
