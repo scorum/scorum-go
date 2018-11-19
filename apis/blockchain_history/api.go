@@ -49,9 +49,16 @@ func (api *API) GetOperationsInBlock(blockNum uint32, opType AppliedOperationTyp
 	return resp, err
 }
 
-// Get sequence of 'limit' blocks from offset
+// Get sequence of 'limit' blocks with transactions from offset
 func (api *API) GetBlocksHistory(blockNum uint32, limit uint32) (BlockHistory, error) {
 	var resp BlockHistory
 	err := api.call("get_blocks_history", []interface{}{blockNum, limit}, &resp)
+	return resp, err
+}
+
+// Get sequence of 'limit' blocks with operations from offset
+func (api *API) GetBlocks(blockNum uint32, limit uint32) (Blocks, error) {
+	var resp Blocks
+	err := api.call("get_blocks", []interface{}{blockNum, limit}, &resp)
 	return resp, err
 }

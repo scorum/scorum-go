@@ -88,6 +88,10 @@ var opTypes = []OpType{
 	ClosingBudget,
 	BetsMatched,
 	GameStatusChanged,
+	BetResolved,
+	BetCancelled,
+	BetRestored,
+	BetUpdated,
 }
 
 const (
@@ -134,7 +138,7 @@ const (
 	UpdateGameStartTime OpType = "update_game_start_time"
 	PostGameResults     OpType = "post_game_results"
 	PostBet             OpType = "post_bet"
-	CancelPendingBets   OpType = "cancel_pending_bets_operation"
+	CancelPendingBets   OpType = "cancel_pending_bets"
 
 	// virtual operations
 	AuthorReward                OpType = "author_reward"
@@ -163,4 +167,9 @@ const (
 	ClosingBudget                        OpType = "closing_budget"
 	BetsMatched                          OpType = "bets_matched"
 	GameStatusChanged                    OpType = "game_status_changed"
+
+	BetResolved  OpType = "bet_resolved"
+	BetCancelled OpType = "bet_cancelled"
+	BetRestored  OpType = "bet_restored"
+	BetUpdated   OpType = "bet_updated"
 )

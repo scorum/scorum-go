@@ -151,6 +151,7 @@ var knownOperations = map[OpType]reflect.Type{
 	CancelPendingBets:                 reflect.TypeOf(CancelPendingBetsOperation{}),
 	BetsMatched:                       reflect.TypeOf(BetsMatchedVirtualOperation{}),
 	GameStatusChanged:                 reflect.TypeOf(GameStatusChangedVirtualOperation{}),
+	BetResolved:                       reflect.TypeOf(BetResolvedOperation{}),
 }
 
 // UnknownOperation
@@ -343,7 +344,7 @@ func (op *CommentOptionsOperation) Type() OpType {
 
 type ProducerRewardOperation struct {
 	Producer    string `json:"producer"`
-	Scorumpower string `json:"scorumpower"`
+	Scorumpower string `json:"reward"`
 }
 
 func (op *ProducerRewardOperation) Type() OpType {
@@ -385,8 +386,8 @@ func (op *DelegateScorumpowerOperation) Type() OpType {
 type CreateGameOperation struct {
 	UUID                uuid.UUID `json:"uuid"`
 	Moderator           string    `json:"moderator"`
-	Name                string    `json:"name"`
-	GameType            int8      `json:"game_type"`
+	JsonMetadata        string    `json:"json_metadata"`
+	GameType            GameType  `json:"game"`
 	StartTime           Time      `json:"start_time"`
 	AutoResolveDelaySec uint32    `json:"auto_resolve_delay_sec"`
 	Markets             []Market  `json:"markets"`
@@ -401,11 +402,11 @@ func (op *CreateGameOperation) MarshalTransaction(encoder *transaction.Encoder) 
 	enc.EncodeUVarint(uint64(op.Type().Code()))
 	enc.EncodeUUID(op.UUID)
 	enc.Encode(op.Moderator)
-	enc.Encode(op.Name)
+	enc.Encode(op.JsonMetadata)
 	op.StartTime.MarshalTransaction(encoder)
 	enc.Encode(op.AutoResolveDelaySec)
-	enc.Encode(op.GameType)
-	enc.Encode(int8(len(op.Markets)))
+	enc.Encode(uint8(op.GameType))
+	enc.EncodeUVarint(uint64((len(op.Markets))))
 	for _, m := range op.Markets {
 		enc.Encode(m)
 	}
@@ -413,7 +414,7 @@ func (op *CreateGameOperation) MarshalTransaction(encoder *transaction.Encoder) 
 }
 
 type CancelGameOperation struct {
-	UUID      uuid.UUID `json:"UUID"`
+	UUID      uuid.UUID `json:"uuid"`
 	Moderator string    `json:"moderator"`
 }
 
@@ -470,8 +471,8 @@ func (op *PostGameResultsOperation) MarshalTransaction(encoder *transaction.Enco
 }
 
 type Odds struct {
-	Numerator   int16 `json:"numerator"`
-	Denominator int16 `json:"denominator"`
+	Numerator   int32 `json:"numerator"`
+	Denominator int32 `json:"denominator"`
 }
 
 type PostBetOperation struct {
@@ -489,7 +490,7 @@ func (op *PostBetOperation) Type() OpType {
 }
 
 type CancelPendingBetsOperation struct {
-	BetIDs []uuid.UUID `json:"bet_ids"`
+	BetIDs []uuid.UUID `json:"bet_uuids"`
 	Better string      `json:"better"`
 }
 
@@ -511,14 +512,14 @@ func (op *BetsMatchedVirtualOperation) Type() OpType {
 	return BetsMatched
 }
 
-type GameStatus uint8
+type GameStatus string
 
 const (
-	GameStatusCreated = iota
-	GameStatusStarted
-	GameStatusFinished
-	GameStatusResolved
-	GameStatusExpired
+	GameStatusCreated  GameStatus = "created"
+	GameStatusStarted  GameStatus = "started"
+	GameStatusFinished GameStatus = "finished"
+	GameStatusResolved GameStatus = "resolved"
+	GameStatusExpired  GameStatus = "expired"
 )
 
 type GameStatusChangedVirtualOperation struct {
@@ -529,4 +530,23 @@ type GameStatusChangedVirtualOperation struct {
 
 func (op *GameStatusChangedVirtualOperation) Type() OpType {
 	return GameStatusChanged
+}
+
+type BetResolveKind string
+
+const (
+	WinBetResolveKind  = "win"
+	DrawBetResolveKind = "draw"
+)
+
+type BetResolvedOperation struct {
+	GameUUID uuid.UUID      `json:"game_uuid"`
+	Better   string         `json:"better"`
+	BetUUID  uuid.UUID      `json:"bet_uuid"`
+	Income   Asset          `json:"income"`
+	Kind     BetResolveKind `json:"kind"`
+}
+
+func (op *BetResolvedOperation) Type() OpType {
+	return BetResolved
 }

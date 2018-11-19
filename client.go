@@ -5,6 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/scorum/scorum-go/apis/account_history"
+	"github.com/scorum/scorum-go/apis/betting"
 	"github.com/scorum/scorum-go/apis/blockchain_history"
 	"github.com/scorum/scorum-go/apis/chain"
 	"github.com/scorum/scorum-go/apis/database"
@@ -33,6 +34,9 @@ type Client struct {
 	// BlockchainHistory represents blockchain_history_api
 	BlockchainHistory *blockchain_history.API
 
+	// Betting represents betting_api
+	Betting *betting.API
+
 	// Chain represents chain_api
 	Chain *chain.API
 }
@@ -45,6 +49,7 @@ func NewClient(cc caller.CallCloser) *Client {
 	client.AccountHistory = account_history.NewAPI(client.cc)
 	client.NetworkBroadcast = network_broadcast.NewAPI(client.cc)
 	client.BlockchainHistory = blockchain_history.NewAPI(client.cc)
+	client.Betting = betting.NewAPI(client.cc)
 	return client
 }
 

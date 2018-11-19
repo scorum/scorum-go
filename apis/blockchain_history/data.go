@@ -87,3 +87,29 @@ func (bh *BlockHistory) UnmarshalJSON(b []byte) (err error) {
 
 	return nil
 }
+
+type Blocks map[uint32]*types.OperationsBlock
+
+func (bs *Blocks) UnmarshalJSON(b []byte) (err error) {
+	// unmarshal array
+	var blocks []json.RawMessage
+	if err := json.Unmarshal(b, &blocks); err != nil {
+		return err
+	}
+
+	bhm := make(Blocks, len(blocks))
+
+	// foreach block
+	for _, v := range blocks {
+		var block types.OperationsBlock
+		if err := json.Unmarshal(v, &block); err != nil {
+			return err
+		}
+
+		bhm[block.BlockNum] = &block
+	}
+
+	*bs = bhm
+
+	return nil
+}
