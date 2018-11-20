@@ -535,8 +535,8 @@ func (op *GameStatusChangedVirtualOperation) Type() OpType {
 type BetResolveKind string
 
 const (
-	WinBetResolveKind  = "win"
-	DrawBetResolveKind = "draw"
+	WinBetResolveKind  BetResolveKind = "win"
+	DrawBetResolveKind BetResolveKind = "draw"
 )
 
 type BetResolvedOperation struct {
@@ -549,4 +549,23 @@ type BetResolvedOperation struct {
 
 func (op *BetResolvedOperation) Type() OpType {
 	return BetResolved
+}
+
+type BetCancelKind string
+
+const (
+	PendingBetKind BetCancelKind = "pending"
+	MatchedBetKind BetCancelKind = "matched"
+)
+
+type BetCancelledOperation struct {
+	GameUUID uuid.UUID     `json:"game_uuid"`
+	Better   string        `json:"better"`
+	BetUUID  uuid.UUID     `json:"bet_uuid"`
+	Stake    Asset         `json:"stake"`
+	Kind     BetCancelKind `json:"kind"`
+}
+
+func (op *BetCancelledOperation) Type() OpType {
+	return BetCancelled
 }
