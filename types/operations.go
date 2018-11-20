@@ -152,6 +152,7 @@ var knownOperations = map[OpType]reflect.Type{
 	BetsMatched:                       reflect.TypeOf(BetsMatchedVirtualOperation{}),
 	GameStatusChanged:                 reflect.TypeOf(GameStatusChangedVirtualOperation{}),
 	BetResolved:                       reflect.TypeOf(BetResolvedOperation{}),
+	BetCancelled:                      reflect.TypeOf(BetCancelledOperation{}),
 }
 
 // UnknownOperation
