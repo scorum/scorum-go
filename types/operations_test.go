@@ -247,6 +247,45 @@ func TestPostGameResultsOperation_Serialization(t *testing.T) {
 		hex.EncodeToString(b.Bytes()))
 }
 
+func TestPostBetOperation_Serialization(t *testing.T) {
+	uuid := uuid.UUID{}
+	require.NoError(t, uuid.UnmarshalText([]byte("e629f9aa-6b2c-46aa-8fa8-36770e7a7a5f")))
+
+	asset, err := AssetFromString("10.000000000 SCR")
+	require.NoError(t, err)
+
+	op := PostBetOperation{
+		UUID:      uuid,
+		Better: "admin",
+		GameUUID: uuid,
+		Wincase: Wincase{
+			&ScoreYesNoWincase{
+					ID: WincaseCorrectScoreYes,
+					Home: 17,
+					Away: 23,
+				}},
+		Odds: Odds {
+			Numerator: 1,
+			Denominator: 2,
+		},
+		Stake: *asset,
+		Live: true,
+
+	}
+	var b bytes.Buffer
+	encoder := transaction.NewEncoder(&b)
+
+	require.NoError(t, op.MarshalTransaction(encoder))
+
+	require.EqualValues(
+		t,
+		"28e629f9aa6b2c46aa8fa836770e7a7a5f0561646d696ee629f9aa6b2c46aa8fa836770e7a7a5f1011001700010000000200000000e40b5402000000095343520000000001",
+		hex.EncodeToString(b.Bytes()))
+}
+
+
+
+
 func TestCreateGameOperation_UnmarshalJSON(t *testing.T) {
 	testJson := `{
                                               "uuid":"e629f9aa-6b2c-46aa-8fa8-36770e7a7a5f",

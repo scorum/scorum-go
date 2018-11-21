@@ -476,6 +476,13 @@ type Odds struct {
 	Denominator int32 `json:"denominator"`
 }
 
+func (o Odds) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeNumber(o.Numerator)
+	enc.EncodeNumber(o.Denominator)
+	return enc.Err()
+}
+
 type PostBetOperation struct {
 	UUID     uuid.UUID `json:"uuid"`
 	Better   string    `json:"better"`
@@ -488,6 +495,19 @@ type PostBetOperation struct {
 
 func (op *PostBetOperation) Type() OpType {
 	return PostBet
+}
+
+func (op *PostBetOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.EncodeUUID(op.UUID)
+	enc.Encode(op.Better)
+	enc.EncodeUUID(op.GameUUID)
+	enc.Encode(op.Wincase)
+	enc.Encode(op.Odds)
+	enc.EncodeMoney(op.Stake.String())
+	enc.EncodeBool(op.Live)
+	return enc.Err()
 }
 
 type CancelPendingBetsOperation struct {
