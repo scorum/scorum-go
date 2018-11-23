@@ -522,7 +522,7 @@ func (op *CancelPendingBetsOperation) Type() OpType {
 func (op *CancelPendingBetsOperation) MarshalTransaction(encoder *transaction.Encoder) error {
 	enc := transaction.NewRollingEncoder(encoder)
 	enc.EncodeUVarint(uint64(op.Type().Code()))
-	enc.Encode(int8(len(op.BetIDs)))
+	enc.EncodeUVarint(uint64(len(op.BetIDs)))
 	for _, v := range op.BetIDs {
 		enc.EncodeUUID(v)
 	}
