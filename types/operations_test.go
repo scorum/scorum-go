@@ -283,8 +283,29 @@ func TestPostBetOperation_Serialization(t *testing.T) {
 		hex.EncodeToString(b.Bytes()))
 }
 
+func TestCancelPendingBetsOperation_Serialization(t *testing.T) {
+	uuids := make([]uuid.UUID, 0)
 
+	var id uuid.UUID
+	require.NoError(t, id.UnmarshalText([]byte("e629f9aa-6b2c-46aa-8fa8-36770e7a7a5f")))
 
+	uuids = append(uuids, id)
+
+	op := CancelPendingBetsOperation{
+		BetIDs: uuids,
+		Better: "admin",
+	}
+
+	var b bytes.Buffer
+	encoder := transaction.NewEncoder(&b)
+
+	require.NoError(t, op.MarshalTransaction(encoder))
+
+	require.EqualValues(
+		t,
+		"2901e629f9aa6b2c46aa8fa836770e7a7a5f0561646d696e",
+		hex.EncodeToString(b.Bytes()))
+}
 
 func TestCreateGameOperation_UnmarshalJSON(t *testing.T) {
 	testJson := `{
