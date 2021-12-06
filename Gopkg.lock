@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:b520b55fc1146c5b0eea03b07233f7a3d4a9be985c037c91ea6b82ecb81bd521"
+  name = "github.com/bitly/go-simplejson"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "aabad6e819789e569bd6aabf444c935aa9ba1e44"
+  version = "v0.5.0"
+
+[[projects]]
   branch = "master"
   digest = "1:401d088d63d37e8da99e1cf7e917a465436a41a143ef16a0a8013873745a2ddd"
   name = "github.com/btcsuite/btcd"
@@ -33,6 +41,14 @@
   pruneopts = "UT"
   revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
   version = "v1.1.1"
+
+[[projects]]
+  digest = "1:bbba45b09b3b502dc39afb36c3e9f89b9c2832b1f6d673277c97eade8875e462"
+  name = "github.com/google/uuid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "44b5fee7c49cf3bcdf723f106b36d56ef13ccc88"
+  version = "v1.3.0"
 
 [[projects]]
   digest = "1:7b5c6e2eeaa9ae5907c391a91c132abfd5c9e8a784a341b5625e750c67e6825d"
@@ -89,9 +105,11 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/bitly/go-simplejson",
     "github.com/btcsuite/btcd/btcec",
     "github.com/btcsuite/btcutil",
     "github.com/davecgh/go-spew/spew",
+    "github.com/google/uuid",
     "github.com/gorilla/websocket",
     "github.com/pkg/errors",
     "github.com/shopspring/decimal",

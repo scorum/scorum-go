@@ -15,6 +15,10 @@ type Asset struct {
 	d decimal.Decimal
 }
 
+func AssetFromDecimal(d decimal.Decimal) *Asset{
+	return &Asset{d: d}
+}
+
 func AssetFromFloat(value float64) *Asset {
 	return &Asset{d: decimal.NewFromFloat(value)}
 }
