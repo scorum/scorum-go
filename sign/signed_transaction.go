@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcutil"
@@ -81,4 +82,43 @@ func (tx *SignedTransaction) Sign(wifs []string, chain *Chain) error {
 	}
 	tx.Transaction.Signatures = sigsHex
 	return nil
+}
+
+func (tx *SignedTransaction) Verify(chain *Chain, keys [][]byte) (bool, error) {
+	dig, err := tx.Digest(chain)
+	if err != nil {
+		return false, fmt.Errorf("failed to get digest: %w", err)
+	}
+
+	pubKeysFound := make([]*btcec.PublicKey, 0, len(tx.Signatures))
+	for _, signature := range tx.Signatures {
+		sig, err := hex.DecodeString(signature)
+		if err != nil {
+			return false, fmt.Errorf("failed to decode signature: %w", err)
+		}
+
+		p, _, err := btcec.RecoverCompact(btcec.S256(), sig, dig)
+		if err != nil {
+			return false, fmt.Errorf("failed to RecoverCompact: %w", err)
+		}
+
+		pubKeysFound = append(pubKeysFound, p)
+	}
+
+find:
+	for _, pub := range pubKeysFound {
+		for _, v := range keys {
+			pb, err := btcec.ParsePubKey(v, btcec.S256())
+			if err != nil {
+				return false, fmt.Errorf("failed to parse pub key: %w", err)
+			}
+
+			if pub.IsEqual(pb) {
+				continue find
+			}
+		}
+		return false, nil
+	}
+
+	return true, nil
 }
