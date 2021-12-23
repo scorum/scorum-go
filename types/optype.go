@@ -172,4 +172,8 @@ const (
 	BetCancelled OpType = "bet_cancelled"
 	BetRestored  OpType = "bet_restored"
 	BetUpdated   OpType = "bet_updated"
+
+	CreateNFT         OpType = "create_nft"
+	UpdateNFTMetadata OpType = "update_nft_meta"
+	IncreaseNFTPower  OpType = "increase_nft_power"
 )
