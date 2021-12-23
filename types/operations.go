@@ -153,6 +153,9 @@ var knownOperations = map[OpType]reflect.Type{
 	GameStatusChanged:                 reflect.TypeOf(GameStatusChangedVirtualOperation{}),
 	BetResolved:                       reflect.TypeOf(BetResolvedOperation{}),
 	BetCancelled:                      reflect.TypeOf(BetCancelledOperation{}),
+	CreateNFT:                         reflect.TypeOf(CreateNFTOperation{}),
+	UpdateNFTMetadata:                 reflect.TypeOf(UpdateNFTMetadataOperation{}),
+	IncreaseNFTPower:                  reflect.TypeOf(IncreaseNFTPowerOperation{}),
 }
 
 // UnknownOperation
@@ -600,4 +603,36 @@ type BetCancelledOperation struct {
 
 func (op *BetCancelledOperation) Type() OpType {
 	return BetCancelled
+}
+
+type CreateNFTOperation struct {
+	UUID         uuid.UUID `json:"uuid"`
+	OwnerAccount string    `json:"owner"`
+	Name         string    `json:"name"`
+	JSONMetadata string    `json:"json_metadata"`
+	Power        uint64    `json:"power"`
+}
+
+func (op *CreateNFTOperation) Type() OpType {
+	return CreateNFT
+}
+
+type UpdateNFTMetadataOperation struct {
+	UUID         uuid.UUID `json:"uuid"`
+	Moderator    string    `json:"moderator"`
+	JSONMetadata string    `json:"json_metadata"`
+}
+
+func (op *UpdateNFTMetadataOperation) Type() OpType {
+	return UpdateNFTMetadata
+}
+
+type IncreaseNFTPowerOperation struct {
+	UUID      uuid.UUID `json:"uuid"`
+	Moderator string    `json:"moderator"`
+	Power     uint64    `json:"power"`
+}
+
+func (op *IncreaseNFTPowerOperation) Type() OpType {
+	return IncreaseNFTPower
 }
