@@ -155,7 +155,8 @@ var knownOperations = map[OpType]reflect.Type{
 	BetCancelled:                      reflect.TypeOf(BetCancelledOperation{}),
 	CreateNFT:                         reflect.TypeOf(CreateNFTOperation{}),
 	UpdateNFTMetadata:                 reflect.TypeOf(UpdateNFTMetadataOperation{}),
-	IncreaseNFTPower:                  reflect.TypeOf(IncreaseNFTPowerOperation{}),
+	CreateGameRound:                   reflect.TypeOf(CreateGameRoundOperation{}),
+	GameRoundResult:                   reflect.TypeOf(GameRoundResultOperation{}),
 }
 
 // UnknownOperation
@@ -617,6 +618,17 @@ func (op *CreateNFTOperation) Type() OpType {
 	return CreateNFT
 }
 
+func (op *CreateNFTOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.Encode(op.UUID)
+	enc.Encode(op.OwnerAccount)
+	enc.Encode(op.Name)
+	enc.Encode(op.JSONMetadata)
+	enc.Encode(op.Power)
+	return enc.Err()
+}
+
 type UpdateNFTMetadataOperation struct {
 	UUID         uuid.UUID `json:"uuid"`
 	Moderator    string    `json:"moderator"`
@@ -627,12 +639,51 @@ func (op *UpdateNFTMetadataOperation) Type() OpType {
 	return UpdateNFTMetadata
 }
 
-type IncreaseNFTPowerOperation struct {
-	UUID      uuid.UUID `json:"uuid"`
-	Moderator string    `json:"moderator"`
-	Power     uint64    `json:"power"`
+func (op *UpdateNFTMetadataOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.Encode(op.UUID)
+	enc.Encode(op.Moderator)
+	enc.Encode(op.JSONMetadata)
+	return enc.Err()
 }
 
-func (op *IncreaseNFTPowerOperation) Type() OpType {
-	return IncreaseNFTPower
+type CreateGameRoundOperation struct {
+	Account         string    `json:"account"`
+	UUID            uuid.UUID `json:"uuid"`
+	VerificationKey string    `json:"verification_key"`
+	Seed            string    `json:"seed"`
+}
+
+func (op *CreateGameRoundOperation) Type() OpType { return CreateGameRound }
+
+func (op *CreateGameRoundOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.Encode(op.Account)
+	enc.Encode(op.UUID)
+	enc.Encode(op.VerificationKey)
+	enc.Encode(op.Seed)
+	return enc.Err()
+}
+
+type GameRoundResultOperation struct {
+	Account string    `json:"account"`
+	UUID    uuid.UUID `json:"uuid"`
+	Proof   string    `json:"proof"`
+	Vrf     string    `json:"vrf"`
+	Result  string    `json:"result"`
+}
+
+func (op *GameRoundResultOperation) Type() OpType { return GameRoundResult }
+
+func (op *GameRoundResultOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.Encode(op.Account)
+	enc.Encode(op.UUID)
+	enc.Encode(op.Proof)
+	enc.Encode(op.Vrf)
+	enc.Encode(op.Result)
+	return enc.Err()
 }
