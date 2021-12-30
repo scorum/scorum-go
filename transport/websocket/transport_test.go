@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"context"
 	"sync"
 	"testing"
 
@@ -18,7 +19,7 @@ func TestUnknownAPIID(t *testing.T) {
 	defer caller.Close()
 
 	var reply interface{}
-	err = caller.Call("some api", "some method", []interface{}{}, reply)
+	err = caller.Call(context.Background(), "some api", "some method", []interface{}{}, reply)
 	require.Error(t, err)
 
 	require.IsType(t, &transport.RPCError{}, err)
@@ -31,7 +32,7 @@ func TestUnknownMethod(t *testing.T) {
 	defer caller.Close()
 
 	var reply interface{}
-	err = caller.Call("database_api", "some method", []interface{}{}, reply)
+	err = caller.Call(context.Background(), "database_api", "some method", []interface{}{}, reply)
 	require.Error(t, err)
 
 	require.IsType(t, &transport.RPCError{}, err)
@@ -44,7 +45,7 @@ func TestTooFewArgumentsPassedToMethod(t *testing.T) {
 	defer caller.Close()
 
 	var reply interface{}
-	err = caller.Call("database_api", "get_block_header", []interface{}{}, reply)
+	err = caller.Call(context.Background(), "database_api", "get_block_header", []interface{}{}, reply)
 	require.Error(t, err)
 
 	require.IsType(t, &transport.RPCError{}, err)
@@ -64,7 +65,7 @@ func TestParallel(t *testing.T) {
 	for i := 0; i < 20; i++ {
 		go func(num int) {
 			var resp interface{}
-			err := caller.Call("blockchain_history_api", "get_block_header", []interface{}{num}, &resp)
+			err := caller.Call(context.Background(), "blockchain_history_api", "get_block_header", []interface{}{num}, &resp)
 			require.NoError(t, err)
 			wg.Done()
 		}(i)

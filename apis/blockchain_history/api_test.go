@@ -1,6 +1,7 @@
 package blockchain_history
 
 import (
+	"context"
 	"testing"
 
 	"math"
@@ -15,7 +16,7 @@ func TestGetBlockHeader(t *testing.T) {
 	transport := http.NewTransport(nodeHTTPS)
 	api := NewAPI(transport)
 
-	block, err := api.GetBlockHeader(24)
+	block, err := api.GetBlockHeader(context.Background(), 24)
 	require.NoError(t, err)
 
 	require.NotEmpty(t, block.Previous)
@@ -26,20 +27,20 @@ func TestGetBlock(t *testing.T) {
 	transport := http.NewTransport(nodeHTTPS)
 	api := NewAPI(transport)
 
-	block, err := api.GetBlock(uint32(50))
+	block, err := api.GetBlock(context.Background(), uint32(50))
 	require.NoError(t, err)
 
 	require.NotEmpty(t, block.Previous)
 	require.NotEmpty(t, block.TransactionMerkleRoot)
 	require.NotEmpty(t, "00000032cfc128aff54138d97d183c416a352ec7", block.BlockID)
-	require.Equal(t, "scorumwitness1", block.Witness)
+	require.Equal(t, "scorumwitness2", block.Witness)
 }
 
 func TestGetOperationsInBlock(t *testing.T) {
 	transport := http.NewTransport(nodeHTTPS)
 	api := NewAPI(transport)
 
-	ops, err := api.GetOperationsInBlock(uint32(127), AllOp)
+	ops, err := api.GetOperationsInBlock(context.Background(), uint32(127), AllOp)
 	require.NoError(t, err)
 	require.NotEmpty(t, ops)
 
@@ -53,19 +54,19 @@ func TestGetBlocksHistory(t *testing.T) {
 	api := NewAPI(transport)
 
 	t.Run("from beginning", func(t *testing.T) {
-		blocks, err := api.GetBlocksHistory(100, 100)
+		blocks, err := api.GetBlocksHistory(context.Background(), 100, 100)
 		require.NoError(t, err)
 		require.Len(t, blocks, 100)
 	})
 
 	t.Run("from end", func(t *testing.T) {
-		blocks, err := api.GetBlocksHistory(math.MaxUint32, 100)
+		blocks, err := api.GetBlocksHistory(context.Background(), math.MaxUint32, 100)
 		require.NoError(t, err)
 		require.True(t, len(blocks) > 0)
 	})
 
 	t.Run("exceeded limit", func(t *testing.T) {
-		_, err := api.GetBlocksHistory(math.MaxUint32, 2000)
+		_, err := api.GetBlocksHistory(context.Background(), math.MaxUint32, 2000)
 		require.Error(t, err)
 	})
 
@@ -76,7 +77,7 @@ func TestGetBlocks(t *testing.T) {
 	api := NewAPI(transport)
 
 	t.Run("from beginning", func(t *testing.T) {
-		blocks, err := api.GetBlocks(100, 100)
+		blocks, err := api.GetBlocks(context.Background(), 100, 100)
 		require.NoError(t, err)
 		require.Len(t, blocks, 100)
 		for _, v := range blocks {
@@ -85,16 +86,13 @@ func TestGetBlocks(t *testing.T) {
 	})
 
 	t.Run("from end", func(t *testing.T) {
-		blocks, err := api.GetBlocks(math.MaxUint32, 100)
+		blocks, err := api.GetBlocks(context.Background(), math.MaxUint32, 100)
 		require.NoError(t, err)
 		require.NotEmpty(t, blocks)
-		for _, v := range blocks {
-			require.NotEmpty(t, v.Operations)
-		}
 	})
 
 	t.Run("exceeded limit", func(t *testing.T) {
-		_, err := api.GetBlocks(math.MaxUint32, 2000)
+		_, err := api.GetBlocks(context.Background(), math.MaxUint32, 2000)
 		require.Error(t, err)
 	})
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"math/rand"
 	"os"
@@ -77,14 +78,14 @@ func Monitor() {
 		var prop *chain.ChainProperties
 
 		// passing -1 returns most recent history item
-		recent, err := client.AccountHistory.GetAccountScrToScrTransfers(paymentAccount, -1, 1)
+		recent, err := client.AccountHistory.GetAccountScrToScrTransfers(context.Background(), paymentAccount, -1, 1)
 		if err != nil {
 			log.Printf("failed to get recent account history: %s\n", err)
 			goto Step
 		}
 
 		// to retrieve LastIrreversibleBlockNum
-		prop, err = client.Chain.GetChainProperties()
+		prop, err = client.Chain.GetChainProperties(context.Background())
 		if err != nil {
 			log.Printf("failed to get dynamic global properties: %s\n", err)
 			goto Step
@@ -98,7 +99,7 @@ func Monitor() {
 		if recentSeq > seq {
 			limit := recentSeq - seq
 			// retrieve transactions created since the last step
-			history, err := client.AccountHistory.GetAccountScrToScrTransfers(paymentAccount, int32(recentSeq), int32(limit))
+			history, err := client.AccountHistory.GetAccountScrToScrTransfers(context.Background(), paymentAccount, int32(recentSeq), int32(limit))
 			if err != nil {
 				log.Printf("failed to get recent account history: %s\n", err)
 				goto Step
@@ -152,7 +153,7 @@ func acceptTransfer(seq uint32, trx *types.OperationObject, op *types.TransferOp
 	depositID := op.Memo
 	deposit, ok := deposits[depositID]
 	if !ok {
-		//unrecognized deposit, save it somewhere for later review
+		// unrecognized deposit, save it somewhere for later review
 		log.Printf("unrecognized deposit: `%s`\n", op.Memo)
 		return
 	}
@@ -203,7 +204,7 @@ func transfer(deposit *Deposit, amount types.Asset) {
 		From:   paymentAccount,
 		To:     deposit.Account,
 		Amount: amount,
-		Memo:   "payout from", //specify needed memo
+		Memo:   "payout from", // specify needed memo
 	}
 
 	revertBalance := func() {
@@ -221,7 +222,7 @@ func transfer(deposit *Deposit, amount types.Asset) {
 	} else {
 		// run a loop to make sure that the transaction is irreversible
 		for {
-			prop, err := client.Chain.GetChainProperties()
+			prop, err := client.Chain.GetChainProperties(context.Background())
 			if err != nil {
 				log.Printf("failed to get dynamic global properties: %s\n", err)
 				goto Step
@@ -229,7 +230,7 @@ func transfer(deposit *Deposit, amount types.Asset) {
 
 			if resp.BlockNum > prop.LastIrreversibleBlockNumber {
 				// get operation in block
-				trx, err := client.BlockchainHistory.GetOperationsInBlock(resp.BlockNum, blockchain_history.MarketOp)
+				trx, err := client.BlockchainHistory.GetOperationsInBlock(context.Background(), resp.BlockNum, blockchain_history.MarketOp)
 				if err != nil {
 					log.Printf("failed to get operations in a block %d: %s\n", resp.BlockNum, err)
 					goto Step

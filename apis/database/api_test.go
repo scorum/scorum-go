@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"testing"
 
 	"github.com/scorum/scorum-go/transport/http"
@@ -13,7 +14,7 @@ func TestGetAccountsCount(t *testing.T) {
 	transport := http.NewTransport(nodeHTTPS)
 	api := NewAPI(transport)
 
-	count, err := api.GetAccountsCount()
+	count, err := api.GetAccountsCount(context.Background())
 	require.NoError(t, err)
 	require.True(t, count > 0)
 }
@@ -22,7 +23,7 @@ func TestGetConfig(t *testing.T) {
 	transport := http.NewTransport(nodeHTTPS)
 	api := NewAPI(transport)
 
-	config, err := api.GetConfig()
+	config, err := api.GetConfig(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, "SCR", config.ScorumAddressPrefix)
 }
@@ -32,13 +33,13 @@ func TestLookupAccounts(t *testing.T) {
 	api := NewAPI(transport)
 
 	t.Run("from beginning", func(t *testing.T) {
-		accounts, err := api.LookupAccounts("", 1000)
+		accounts, err := api.LookupAccounts(context.Background(), "", 1000)
 		require.NoError(t, err)
 		require.True(t, len(accounts) > 0)
 	})
 
 	t.Run("from 'bebe'", func(t *testing.T) {
-		accounts, err := api.LookupAccounts("bebe", 1000)
+		accounts, err := api.LookupAccounts(context.Background(), "bebe", 1000)
 		t.Log(accounts)
 		require.NoError(t, err)
 		require.True(t, len(accounts) > 0)
@@ -53,7 +54,7 @@ func TestLookupAccounts(t *testing.T) {
 		)
 
 		for {
-			accounts, err := api.LookupAccounts(lowerBound, limit)
+			accounts, err := api.LookupAccounts(context.Background(), lowerBound, limit)
 			require.NoError(t, err)
 			if lowerBound == "" {
 				add = accounts[:]
@@ -68,14 +69,14 @@ func TestLookupAccounts(t *testing.T) {
 			lowerBound = all[len(all)-1]
 		}
 
-		count, err := api.GetAccountsCount()
+		count, err := api.GetAccountsCount(context.Background())
 		require.NoError(t, err)
 
 		require.Equal(t, count, len(all))
 	})
 
 	t.Run("exceeded limit", func(t *testing.T) {
-		_, err := api.LookupAccounts("", 2000)
+		_, err := api.LookupAccounts(context.Background(), "", 2000)
 		require.Error(t, err)
 	})
 

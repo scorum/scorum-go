@@ -108,6 +108,7 @@
     "github.com/bitly/go-simplejson",
     "github.com/btcsuite/btcd/btcec",
     "github.com/btcsuite/btcutil",
+    "github.com/btcsuite/btcutil/base58",
     "github.com/davecgh/go-spew/spew",
     "github.com/google/uuid",
     "github.com/gorilla/websocket",

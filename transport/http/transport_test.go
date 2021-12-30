@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"testing"
 
 	"github.com/scorum/scorum-go/transport"
@@ -16,7 +17,7 @@ func TestNodeIsDown(t *testing.T) {
 	defer caller.Close()
 
 	var reply interface{}
-	err := caller.Call("some api", "some method", []interface{}{}, reply)
+	err := caller.Call(context.Background(), "some api", "some method", []interface{}{}, reply)
 	require.Error(t, err)
 }
 
@@ -25,7 +26,7 @@ func TestUnknownAPIID(t *testing.T) {
 	defer caller.Close()
 
 	var reply interface{}
-	err := caller.Call("some api", "some method", []interface{}{}, reply)
+	err := caller.Call(context.Background(), "some api", "some method", []interface{}{}, reply)
 	require.Error(t, err)
 
 	require.IsType(t, &transport.RPCError{}, err)

@@ -1,6 +1,7 @@
 package scorumgo
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -44,7 +45,7 @@ func TestGetConfigViaWS(t *testing.T) {
 	client := newWebsocketClient(t)
 	defer client.Close()
 
-	config, err := client.Database.GetConfig()
+	config, err := client.Database.GetConfig(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, "SCR", config.ScorumAddressPrefix)
 }
@@ -53,7 +54,7 @@ func TestGetDynamicGlobalProperties(t *testing.T) {
 	client := newWebsocketClient(t)
 	defer client.Close()
 
-	config, err := client.Database.GetDynamicGlobalProperties()
+	config, err := client.Database.GetDynamicGlobalProperties(context.Background())
 	require.NoError(t, err)
 	t.Logf("dynamic properties: %+v", config)
 }
@@ -62,7 +63,7 @@ func TestGetAccounts(t *testing.T) {
 	client := newHTTPClient()
 	defer client.Close()
 
-	accounts, err := client.Database.GetAccounts("leonarda", "kristie")
+	accounts, err := client.Database.GetAccounts(context.Background(), "leonarda", "kristie")
 	require.NoError(t, err)
 
 	require.Len(t, accounts, 2)
@@ -73,7 +74,7 @@ func TestGetAccounts(t *testing.T) {
 func TestGetAccountHistory(t *testing.T) {
 	client := newHTTPClient()
 
-	history, err := client.AccountHistory.GetAccountHistory("leonarda", -1, 3)
+	history, err := client.AccountHistory.GetAccountHistory(context.Background(), "leonarda", -1, 3)
 	require.NoError(t, err)
 	require.True(t, len(history) > 0)
 	spew.Dump(history)
@@ -133,7 +134,7 @@ func TestAccountUpdateOperation(t *testing.T) {
 
 	blockIDWithAcountUpdateOp := uint32(1799)
 
-	block, err := client.BlockchainHistory.GetBlock(blockIDWithAcountUpdateOp)
+	block, err := client.BlockchainHistory.GetBlock(context.Background(), blockIDWithAcountUpdateOp)
 
 	require.NoError(t, err)
 	require.Len(t, block.Transactions, 1)
@@ -167,7 +168,7 @@ func TestDelegateScorumpowerOperation(t *testing.T) {
 
 	blockIDDelegateSCP := uint32(5709822)
 
-	block, err := client.BlockchainHistory.GetBlock(blockIDDelegateSCP)
+	block, err := client.BlockchainHistory.GetBlock(context.Background(), blockIDDelegateSCP)
 
 	require.NoError(t, err)
 	require.Len(t, block.Transactions, 1)

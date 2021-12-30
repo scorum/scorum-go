@@ -1,6 +1,7 @@
 package chain
 
 import (
+	"context"
 	"github.com/scorum/scorum-go/caller"
 )
 
@@ -14,13 +15,8 @@ func NewAPI(caller caller.Caller) *API {
 	return &API{caller}
 }
 
-func (api *API) call(method string, args []interface{}, reply interface{}) error {
-	return api.caller.Call(APIID, method, args, reply)
-}
-
-// Get chain properties
-func (api *API) GetChainProperties() (*ChainProperties, error) {
+func (api *API) GetChainProperties(ctx context.Context) (*ChainProperties, error) {
 	var resp ChainProperties
-	err := api.call("get_chain_properties", caller.EmptyParams, &resp)
+	err := api.caller.Call(ctx, APIID, "get_chain_properties", caller.EmptyParams, &resp)
 	return &resp, err
 }

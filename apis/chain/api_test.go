@@ -1,6 +1,7 @@
 package chain
 
 import (
+	"context"
 	"testing"
 
 	"github.com/scorum/scorum-go/transport/http"
@@ -13,7 +14,7 @@ func TestGetChainProperties(t *testing.T) {
 	transport := http.NewTransport(nodeHTTPS)
 	api := NewAPI(transport)
 
-	props, err := api.GetChainProperties()
+	props, err := api.GetChainProperties(context.Background())
 	require.NoError(t, err)
 	require.NotEmpty(t, props.ChainID)
 	require.True(t, props.HeadBlockNumber > 0)

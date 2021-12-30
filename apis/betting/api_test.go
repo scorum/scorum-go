@@ -1,6 +1,7 @@
 package betting
 
 import (
+	"context"
 	"testing"
 
 	"github.com/google/uuid"
@@ -18,7 +19,7 @@ func TestGetGameWinners(t *testing.T) {
 	uuid, err := uuid.Parse("3bd3fb0a-4c3c-4103-b736-61849157062a")
 	require.NoError(t, err)
 
-	winners, err := api.GetGameWinners(uuid)
+	winners, err := api.GetGameWinners(context.Background(), uuid)
 	require.NoError(t, err)
 	require.NotEmpty(t, winners)
 }

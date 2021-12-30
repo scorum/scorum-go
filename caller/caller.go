@@ -1,6 +1,7 @@
 package caller
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 )
@@ -8,7 +9,7 @@ import (
 var EmptyParams = []interface{}{}
 
 type Caller interface {
-	Call(api string, method string, args []interface{}, reply interface{}) error
+	Call(ctx context.Context, api string, method string, args []interface{}, reply interface{}) error
 	SetCallback(api string, method string, callback func(raw json.RawMessage)) error
 }
 

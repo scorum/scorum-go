@@ -2,13 +2,13 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math"
 	"net/http"
 	"sync"
-
 	"time"
 
 	"github.com/pkg/errors"
@@ -17,24 +17,37 @@ import (
 
 type Transport struct {
 	Url    string
-	client http.Client
+	client *http.Client
 
 	requestID uint64
 	reqMutex  sync.Mutex
 }
 
-func NewTransport(url string) *Transport {
-	timeout := time.Duration(5 * time.Second)
-
-	return &Transport{
-		client: http.Client{
-			Timeout: timeout,
-		},
+func NewTransport(url string, options ...func(*Transport)) *Transport {
+	t := Transport{
 		Url: url,
+	}
+
+	for _, o := range options {
+		o(&t)
+	}
+
+	if t.client == nil {
+		t.client = &http.Client{
+			Timeout: 5 * time.Second,
+		}
+	}
+
+	return &t
+}
+
+func WithHttpClient(client *http.Client) func(*Transport) {
+	return func(t *Transport) {
+		t.client = client
 	}
 }
 
-func (caller *Transport) Call(api string, method string, args []interface{}, reply interface{}) error {
+func (caller *Transport) Call(ctx context.Context, api string, method string, args []interface{}, reply interface{}) error {
 	caller.reqMutex.Lock()
 	defer caller.reqMutex.Unlock()
 
@@ -55,7 +68,13 @@ func (caller *Transport) Call(api string, method string, args []interface{}, rep
 		return err
 	}
 
-	resp, err := caller.client.Post(caller.Url, "application/json", bytes.NewBuffer(reqBody))
+	req, err := http.NewRequestWithContext(ctx, "POST", caller.Url, bytes.NewBuffer(reqBody))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := caller.client.Do(req)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 package scorumgo
 
 import (
+	"context"
 	"time"
 
 	"github.com/pkg/errors"
@@ -59,14 +60,18 @@ func (client *Client) Close() error {
 	return client.cc.Close()
 }
 
-// Sign the given operations with the wifs and broadcast them as one transaction
+// Broadcast Sign the given operations with the wifs and broadcast them as one transaction
 func (client *Client) Broadcast(chain *sign.Chain, wifs []string, operations ...types.Operation) (*network_broadcast.BroadcastResponse, error) {
-	props, err := client.Chain.GetChainProperties()
+	return client.BroadcastContext(context.Background(), chain, wifs, operations...)
+}
+
+func (client *Client) BroadcastContext(ctx context.Context, chain *sign.Chain, wifs []string, operations ...types.Operation) (*network_broadcast.BroadcastResponse, error) {
+	props, err := client.Chain.GetChainProperties(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get dynamic global properties")
 	}
 
-	block, err := client.BlockchainHistory.GetBlock(props.LastIrreversibleBlockNumber)
+	block, err := client.BlockchainHistory.GetBlock(ctx, props.LastIrreversibleBlockNumber)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get block")
 	}
@@ -91,5 +96,5 @@ func (client *Client) Broadcast(chain *sign.Chain, wifs []string, operations ...
 		return nil, errors.Wrap(err, "failed to sign the transaction")
 	}
 
-	return client.NetworkBroadcast.BroadcastTransactionSynchronous(stx.Transaction)
+	return client.NetworkBroadcast.BroadcastTransactionSynchronous(ctx, stx.Transaction)
 }

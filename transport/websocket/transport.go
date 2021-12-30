@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -53,7 +54,7 @@ func NewTransport(url string) (*Transport, error) {
 	return client, nil
 }
 
-func (caller *Transport) Call(api string, method string, args []interface{}, reply interface{}) error {
+func (caller *Transport) Call(ctx context.Context, api string, method string, args []interface{}, reply interface{}) error {
 	caller.reqMutex.Lock()
 	defer caller.reqMutex.Unlock()
 
@@ -120,7 +121,7 @@ func (caller *Transport) input() {
 			if call, ok := caller.pending[response.ID]; ok {
 				caller.onCallResponse(response, call)
 			} else {
-				//the message is not a pending call, but probably a callback notice
+				// the message is not a pending call, but probably a callback notice
 				var incoming transport.RPCIncoming
 				if err := json.Unmarshal(message, &incoming); err != nil {
 					caller.stop(err)
@@ -202,7 +203,7 @@ func (caller *Transport) SetCallback(api string, method string, notice func(args
 	caller.callbacks[caller.callbackID] = notice
 	caller.callbackMutex.Unlock()
 
-	return caller.Call(api, method, []interface{}{caller.callbackID}, nil)
+	return caller.Call(context.Background(), api, method, []interface{}{caller.callbackID}, nil)
 }
 
 // Close calls the underlying web socket Close method. If the connection is already
