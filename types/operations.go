@@ -621,7 +621,7 @@ func (op *CreateNFTOperation) Type() OpType {
 func (op *CreateNFTOperation) MarshalTransaction(encoder *transaction.Encoder) error {
 	enc := transaction.NewRollingEncoder(encoder)
 	enc.EncodeUVarint(uint64(op.Type().Code()))
-	enc.Encode(op.UUID)
+	enc.EncodeUUID(op.UUID)
 	enc.Encode(op.OwnerAccount)
 	enc.Encode(op.Name)
 	enc.Encode(op.JSONMetadata)
