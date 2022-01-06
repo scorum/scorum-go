@@ -19,7 +19,7 @@ func (api *API) call(method string, args []interface{}, reply interface{}) error
 }
 
 // GetAccountHistory returns operations history for the given account
-// Account operations have sequence numbers from 0 to N where N is the most recent operation. This method
+// Owner operations have sequence numbers from 0 to N where N is the most recent operation. This method
 // returns operations in the range [from-limit, from]
 // from - the absolute sequence number, -1 means most recent, limit is the number of operations before from.
 // limit - the maximum number of items that can be queried [1 to 1000], must be less than from
