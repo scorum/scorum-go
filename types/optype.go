@@ -63,6 +63,8 @@ var opTypes = []OpType{
 	PostBet,
 	CancelPendingBets,
 
+	DelegateSPFromRegPool,
+
 	CreateNFT,
 	UpdateNFTMetadata,
 	CreateGameRound,
@@ -144,6 +146,8 @@ const (
 	PostGameResults     OpType = "post_game_results"
 	PostBet             OpType = "post_bet"
 	CancelPendingBets   OpType = "cancel_pending_bets"
+
+	DelegateSPFromRegPool OpType = "delegate_sp_from_reg_pool"
 
 	CreateNFT         OpType = "create_nft"
 	UpdateNFTMetadata OpType = "update_nft_meta"

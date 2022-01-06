@@ -611,7 +611,7 @@ type CreateNFTOperation struct {
 	UUID         uuid.UUID `json:"uuid"`
 	Name         string    `json:"name"`
 	JSONMetadata string    `json:"json_metadata"`
-	Power        uint64    `json:"power"`
+	Power        int64     `json:"power"`
 }
 
 func (op *CreateNFTOperation) Type() OpType {
@@ -643,7 +643,7 @@ func (op *UpdateNFTMetadataOperation) MarshalTransaction(encoder *transaction.En
 	enc := transaction.NewRollingEncoder(encoder)
 	enc.EncodeUVarint(uint64(op.Type().Code()))
 	enc.Encode(op.Moderator)
-	enc.Encode(op.UUID)
+	enc.EncodeUUID(op.UUID)
 	enc.Encode(op.JSONMetadata)
 	return enc.Err()
 }
@@ -661,7 +661,7 @@ func (op *CreateGameRoundOperation) MarshalTransaction(encoder *transaction.Enco
 	enc := transaction.NewRollingEncoder(encoder)
 	enc.EncodeUVarint(uint64(op.Type().Code()))
 	enc.Encode(op.Owner)
-	enc.Encode(op.UUID)
+	enc.EncodeUUID(op.UUID)
 	enc.Encode(op.VerificationKey)
 	enc.Encode(op.Seed)
 	return enc.Err()
@@ -672,7 +672,7 @@ type GameRoundResultOperation struct {
 	UUID   uuid.UUID `json:"uuid"`
 	Proof  string    `json:"proof"`
 	Vrf    string    `json:"vrf"`
-	Result string    `json:"result"`
+	Result int64     `json:"result"`
 }
 
 func (op *GameRoundResultOperation) Type() OpType { return GameRoundResult }
@@ -681,7 +681,7 @@ func (op *GameRoundResultOperation) MarshalTransaction(encoder *transaction.Enco
 	enc := transaction.NewRollingEncoder(encoder)
 	enc.EncodeUVarint(uint64(op.Type().Code()))
 	enc.Encode(op.Owner)
-	enc.Encode(op.UUID)
+	enc.EncodeUUID(op.UUID)
 	enc.Encode(op.Proof)
 	enc.Encode(op.Vrf)
 	enc.Encode(op.Result)
