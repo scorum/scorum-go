@@ -63,6 +63,11 @@ var opTypes = []OpType{
 	PostBet,
 	CancelPendingBets,
 
+	CreateNFT,
+	UpdateNFTMetadata,
+	CreateGameRound,
+	GameRoundResult,
+
 	// virtual operations
 	CommentBenefactorReward,
 	CommentPayoutUpdate,
@@ -92,10 +97,6 @@ var opTypes = []OpType{
 	BetCancelled,
 	BetRestored,
 	BetUpdated,
-	CreateNFT,
-	UpdateNFTMetadata,
-	CreateGameRound,
-	GameRoundResult,
 }
 
 const (
@@ -144,6 +145,11 @@ const (
 	PostBet             OpType = "post_bet"
 	CancelPendingBets   OpType = "cancel_pending_bets"
 
+	CreateNFT         OpType = "create_nft"
+	UpdateNFTMetadata OpType = "update_nft_meta"
+	CreateGameRound   OpType = "create_game_round"
+	GameRoundResult   OpType = "game_round_result"
+
 	// virtual operations
 	AuthorReward                OpType = "author_reward"
 	CommentBenefactorReward     OpType = "comment_benefactor_reward"
@@ -176,10 +182,4 @@ const (
 	BetCancelled OpType = "bet_cancelled"
 	BetRestored  OpType = "bet_restored"
 	BetUpdated   OpType = "bet_updated"
-
-	CreateNFT         OpType = "create_nft_operation"
-	UpdateNFTMetadata OpType = "update_nft_meta"
-
-	CreateGameRound OpType = "create_game_round"
-	GameRoundResult OpType = "game_round_result"
 )
