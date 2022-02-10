@@ -68,7 +68,7 @@ var opTypes = []OpType{
 	CreateNFT,
 	UpdateNFTMetadata,
 	CreateGameRound,
-	GameRoundResult,
+	UpdateGameRoundResult,
 
 	// virtual operations
 	CommentBenefactorReward,
@@ -149,10 +149,10 @@ const (
 
 	DelegateSPFromRegPool OpType = "delegate_sp_from_reg_pool"
 
-	CreateNFT         OpType = "create_nft"
-	UpdateNFTMetadata OpType = "update_nft_meta"
-	CreateGameRound   OpType = "create_game_round"
-	GameRoundResult   OpType = "game_round_result"
+	CreateNFT             OpType = "create_nft"
+	UpdateNFTMetadata     OpType = "update_nft_meta"
+	CreateGameRound       OpType = "create_game_round"
+	UpdateGameRoundResult OpType = "update_game_round_result"
 
 	// virtual operations
 	AuthorReward                OpType = "author_reward"

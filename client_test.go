@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	nodeWSS         = "wss://testnet.scorum.com"
-	nodeHTTPS       = "https://testnet.scorum.com"
+	nodeWSS         = "wss://testnet.scorum.work"
+	nodeHTTPS       = "https://testnet.scorum.work"
 	mainNetNodeHTTP = "https://prodnet.scorum.com"
 )
 

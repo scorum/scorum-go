@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const nodeHTTPS = "https://testnet.scorum.com"
+const nodeHTTPS = "https://testnet.scorum.work"
 
 func TestGetBlockHeader(t *testing.T) {
 	transport := http.NewTransport(nodeHTTPS)

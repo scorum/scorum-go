@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	nodeHTTPS = "https://testnet.scorum.com"
+	nodeHTTPS = "https://testnet.scorum.work"
 )
 
 func TestNodeIsDown(t *testing.T) {

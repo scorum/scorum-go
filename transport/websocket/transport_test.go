@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	nodeWSS = "wss://testnet.scorum.com"
+	nodeWSS = "wss://testnet.scorum.work"
 )
 
 func TestUnknownAPIID(t *testing.T) {

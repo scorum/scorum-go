@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const nodeHTTPS = "https://testnet.scorum.com"
+const nodeHTTPS = "https://testnet.scorum.work"
 
 func TestGetGameWinners(t *testing.T) {
 	t.Skip("need to start and finish game to get results")

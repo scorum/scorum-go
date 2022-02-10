@@ -156,7 +156,7 @@ var knownOperations = map[OpType]reflect.Type{
 	CreateNFT:                         reflect.TypeOf(CreateNFTOperation{}),
 	UpdateNFTMetadata:                 reflect.TypeOf(UpdateNFTMetadataOperation{}),
 	CreateGameRound:                   reflect.TypeOf(CreateGameRoundOperation{}),
-	GameRoundResult:                   reflect.TypeOf(GameRoundResultOperation{}),
+	UpdateGameRoundResult:             reflect.TypeOf(UpdateGameRoundResultOperation{}),
 }
 
 // UnknownOperation
@@ -611,7 +611,7 @@ type CreateNFTOperation struct {
 	UUID         uuid.UUID `json:"uuid"`
 	Name         string    `json:"name"`
 	JSONMetadata string    `json:"json_metadata"`
-	Power        int64     `json:"power"`
+	InitialPower int32     `json:"initial_power"`
 }
 
 func (op *CreateNFTOperation) Type() OpType {
@@ -625,7 +625,7 @@ func (op *CreateNFTOperation) MarshalTransaction(encoder *transaction.Encoder) e
 	enc.EncodeUUID(op.UUID)
 	enc.Encode(op.Name)
 	enc.Encode(op.JSONMetadata)
-	enc.Encode(op.Power)
+	enc.Encode(op.InitialPower)
 	return enc.Err()
 }
 
@@ -667,17 +667,17 @@ func (op *CreateGameRoundOperation) MarshalTransaction(encoder *transaction.Enco
 	return enc.Err()
 }
 
-type GameRoundResultOperation struct {
+type UpdateGameRoundResultOperation struct {
 	Owner  string    `json:"owner"`
 	UUID   uuid.UUID `json:"uuid"`
 	Proof  string    `json:"proof"`
 	Vrf    string    `json:"vrf"`
-	Result int64     `json:"result"`
+	Result int32     `json:"result"`
 }
 
-func (op *GameRoundResultOperation) Type() OpType { return GameRoundResult }
+func (op *UpdateGameRoundResultOperation) Type() OpType { return UpdateGameRoundResult }
 
-func (op *GameRoundResultOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+func (op *UpdateGameRoundResultOperation) MarshalTransaction(encoder *transaction.Encoder) error {
 	enc := transaction.NewRollingEncoder(encoder)
 	enc.EncodeUVarint(uint64(op.Type().Code()))
 	enc.Encode(op.Owner)

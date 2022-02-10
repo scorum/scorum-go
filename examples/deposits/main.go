@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	testNet        = "https://testnet.scorum.com"
+	testNet        = "https://testnet.scorum.work"
 	paymentAccount = "roselle"
 	paymentWIF     = "5JwWJ2m2jGG9RPcpDix5AvkDzQZJoZvpUQScsDzzXWAKMs8Q6jH"
 )
