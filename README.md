@@ -1,7 +1,7 @@
 # scorum/scorum-go
 [![Go Report Card](https://goreportcard.com/badge/github.com/scorum/scorum-go)](https://goreportcard.com/report/github.com/scorum/scorum-go)
 [![GoDoc](https://godoc.org/github.com/scorum/scorum-go?status.svg)](https://godoc.org/github.com/scorum/scorum-go)
-[![Build Status](https://travis-ci.org/scorum/scorum-go.svg?branch=master)](https://travis-ci.org/scorum/scorum-go)
+[![Build Status](https://github.com/scorum/scorum-go/actions/workflows/main.yml/badge.svg?event=push)](https://github.com/scorum/scorum-go/actions)
 
 Golang RPC client library for [Scorum](https://scorumcoins.com). Both http and websocket transports are supported.
 The websocket one allows to set callbacks.
@@ -15,14 +15,14 @@ import "github.com/scorum/scorum-go"
 ## Example
 ```go
 import (
- scorum "github.com/scorum/scorum-go"
- "github.com/scorum/scorum-go/transport/http"
+    scorum "github.com/scorum/scorum-go"
+    "github.com/scorum/scorum-go/transport/http"
 )
 
-const testNet = "https://testnet.scorum.com"
+const url = "https://testnet.scorum.work"
 
 // create client
-transport := http.NewTransport(testNet)
+transport := http.NewTransport(url)
 client := NewClient(transport)
 
 // get last 100 transactions of the particular account
