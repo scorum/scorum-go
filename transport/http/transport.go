@@ -11,7 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/scorum/scorum-go/transport"
 )
 
@@ -86,12 +85,12 @@ func (caller *Transport) Call(ctx context.Context, api string, method string, ar
 
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return errors.Wrap(err, "failed to read body")
+		return fmt.Errorf("failed to read body: %w", err)
 	}
 
 	var rpcResponse transport.RPCResponse
 	if err = json.Unmarshal(respBody, &rpcResponse); err != nil {
-		return errors.Wrapf(err, "failed to unmarshal response: %+v", string(respBody))
+		return fmt.Errorf("failed to unmarshal response: %+v: %w", string(respBody), err)
 	}
 
 	if rpcResponse.Error != nil {
@@ -100,7 +99,7 @@ func (caller *Transport) Call(ctx context.Context, api string, method string, ar
 
 	if rpcResponse.Result != nil {
 		if err := json.Unmarshal(*rpcResponse.Result, reply); err != nil {
-			return errors.Wrapf(err, "failed to unmarshal rpc result: %+v", string(*rpcResponse.Result))
+			return fmt.Errorf("failed to unmarshal rpc result: %+v: %w", string(*rpcResponse.Result), err)
 		}
 	}
 
