@@ -3,14 +3,13 @@ package transaction
 import (
 	"encoding/binary"
 	"io"
-	"strings"
-
+	"math"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"math"
 )
 
 type Encoder struct {
@@ -82,6 +81,9 @@ func (encoder *Encoder) Encode(v interface{}) error {
 
 	case string:
 		return encoder.encodeString(v)
+
+	case []byte:
+		return encoder.writeBytes(v)
 
 	default:
 		return errors.Errorf("encoder: unsupported type (%+v) encountered", v)

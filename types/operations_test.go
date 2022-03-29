@@ -3,10 +3,10 @@ package types
 import (
 	"bytes"
 	"encoding/hex"
+	"encoding/json"
 	"testing"
 	"time"
 
-	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/scorum/scorum-go/encoding/transaction"
 	"github.com/stretchr/testify/require"
@@ -418,6 +418,40 @@ func Test_UpdateGameRoundResultOperation_Marshall(t *testing.T) {
 
 	require.Equal(t,
 		"2e086f70657261746f72aa3b2bdc176e5e8a9b487dba3aa10044a001363338663637356364343331336165383461656465343934306237363931616364393034646563313431653434343138376463656335396632613235613761346566356161326665336638386366323335633064363361613639333562656636396435623730636163613064396234303238663735313231643033306638306135613462636639376233366138363865613961346332616161393031333230308001366131393661313465346639666365363631313262316237616339386632626364373333353262393138643239386530623966383934353139613635323032646261303364646161353138333139306266326235636435353166396566313463386438623032636631356430313838626263396263633661383064376639316364000000",
+		hex.EncodeToString(b.Bytes()),
+	)
+}
+
+func TestAccountCreateByCommitteeOperation_MarshalTransaction(t *testing.T) {
+	op := AccountCreateByCommitteeOperation{
+		Creator:        "alice",
+		NewAccountName: "bob",
+		Owner: Authority{
+			WeightThreshold: 1,
+			AccountAuths:    NewAccountAuthorityMap(),
+			KeyAuths:        NewKeyAuthorityMap(KeyAuthority{Key: "SCR7zPNg5nAsJjP9gvMfQ4UnAwDwf91WPYC8KFzobtMuQ52ns1D6T", Weight: 1}),
+		},
+		Active: Authority{
+			WeightThreshold: 1,
+			AccountAuths:    NewAccountAuthorityMap(),
+			KeyAuths:        NewKeyAuthorityMap(KeyAuthority{Key: "SCR7SHdKpjpWyfj32tGQBeijFfokmCARjKSBynqDwN1ZAbQRW5rWa", Weight: 1}),
+		},
+		Posting: Authority{
+			WeightThreshold: 1,
+			AccountAuths:    NewAccountAuthorityMap(),
+			KeyAuths:        NewKeyAuthorityMap(KeyAuthority{Key: "SCR5jPZF7PMgTpLqkdfpMu8kXea8Gio6E646aYpTgcjr9qMLrAgnL", Weight: 1}),
+		},
+		MemoKey:      "SCR5jPZF7PMgTpLqkdfpMu8kXea8Gio6E646aYpTgcjr9qMLrAgnL",
+		JsonMetadata: "",
+	}
+
+	var b bytes.Buffer
+	encoder := transaction.NewEncoder(&b)
+
+	require.NoError(t, op.MarshalTransaction(encoder))
+
+	require.Equal(t,
+		"0505616c69636503626f6201000000000103987a5a967458c114c15091198c06a822f54b494ea486204551a53f85effa31420100010000000001034f97d09e6de4778300ed176403e5b4298bfd62f0fb6edb4a6072e7214318d9030100010000000001026f0896f24d94252c351715bfe6052bbf9ea820e805bd47c2496c626d3467da5d0100026f0896f24d94252c351715bfe6052bbf9ea820e805bd47c2496c626d3467da5d00",
 		hex.EncodeToString(b.Bytes()),
 	)
 }

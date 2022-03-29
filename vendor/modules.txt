@@ -17,6 +17,9 @@ github.com/btcsuite/btcutil/bech32
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
+# github.com/elliotchance/orderedmap v1.4.0
+## explicit
+github.com/elliotchance/orderedmap
 # github.com/google/uuid v1.3.0
 ## explicit
 github.com/google/uuid
@@ -29,15 +32,16 @@ github.com/gorilla/websocket
 ## explicit
 github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
-## explicit
 github.com/pmezard/go-difflib/difflib
 # github.com/shopspring/decimal v1.1.0
 ## explicit
 github.com/shopspring/decimal
-# github.com/stretchr/testify v1.2.2
+# github.com/stretchr/testify v1.7.0
 ## explicit
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
 # golang.org/x/crypto v0.0.0-20181001203147-e3636079e1a4
 ## explicit
 golang.org/x/crypto/ripemd160
+# gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
+gopkg.in/yaml.v3

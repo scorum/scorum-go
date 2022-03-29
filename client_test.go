@@ -151,11 +151,11 @@ func TestAccountUpdateOperation(t *testing.T) {
 	require.Len(t, accUpdOpt.Active.AccountAuths, 0)
 	require.Len(t, accUpdOpt.Active.KeyAuths, 2)
 
-	v, ok := accUpdOpt.Active.KeyAuths["SCR6W2AjgDsuYCmeaaMsZUU2Aa8wXxetZY7LEsuYEKEYf5ddMDY48"]
+	v, ok := accUpdOpt.Active.KeyAuths.Get("SCR6W2AjgDsuYCmeaaMsZUU2Aa8wXxetZY7LEsuYEKEYf5ddMDY48")
 	require.True(t, ok)
 	require.EqualValues(t, v, 1)
 
-	v, ok = accUpdOpt.Active.KeyAuths["SCR7bRd3xQLCozabeBTXkxPWYzMQgHP3Aorj1h81WK68ovr83muoo"]
+	v, ok = accUpdOpt.Active.KeyAuths.Get("SCR7bRd3xQLCozabeBTXkxPWYzMQgHP3Aorj1h81WK68ovr83muoo")
 	require.True(t, ok)
 	require.EqualValues(t, v, 1)
 

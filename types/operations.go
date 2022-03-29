@@ -13,7 +13,7 @@ type Operation interface {
 	Type() OpType
 }
 
-// []Operations coming from the Api in the following form: [["op1", {}], ["op2", {}], ...]
+// OperationsArray coming from the Api in the following form: [["op1", {}], ["op2", {}], ...]
 type OperationsArray []Operation
 
 func (ops OperationsArray) MarshalJSON() ([]byte, error) {
@@ -83,7 +83,7 @@ func (ops *OperationsArray) UnmarshalJSON(b []byte) (err error) {
 	return nil
 }
 
-// []Operations coming from the Api in the following form: ["op1", {}, "op2", {}, ...]
+// OperationsFlat coming from the Api in the following form: ["op1", {}, "op2", {}, ...]
 type OperationsFlat []Operation
 
 func (t *OperationsFlat) UnmarshalJSON(b []byte) (err error) {
@@ -159,7 +159,6 @@ var knownOperations = map[OpType]reflect.Type{
 	UpdateGameRoundResult:             reflect.TypeOf(UpdateGameRoundResultOperation{}),
 }
 
-// UnknownOperation
 type UnknownOperation struct {
 	kind OpType
 	Data json.RawMessage
@@ -167,7 +166,6 @@ type UnknownOperation struct {
 
 func (op *UnknownOperation) Type() OpType { return op.kind }
 
-// AccountCreateWithDelegationOperation
 type AccountCreateWithDelegationOperation struct {
 	Fee            string            `json:"fee"`
 	Creator        string            `json:"creator"`
@@ -184,20 +182,31 @@ func (op *AccountCreateWithDelegationOperation) Type() OpType {
 	return AccountCreateWithDelegationOpType
 }
 
-// AccountCreateByCommitteeOperation
 type AccountCreateByCommitteeOperation struct {
 	Creator        string    `json:"creator"`
 	NewAccountName string    `json:"new_account_name"`
 	Owner          Authority `json:"owner"`
 	Active         Authority `json:"active"`
 	Posting        Authority `json:"posting"`
-	MemoKey        string    `json:"memo_key"`
+	MemoKey        PublicKey `json:"memo_key"`
 	JsonMetadata   string    `json:"json_metadata"`
 }
 
 func (op *AccountCreateByCommitteeOperation) Type() OpType { return AccountCreateByCommitteeOpType }
 
-// TransferToScorumpowerOperation
+func (op *AccountCreateByCommitteeOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.Encode(op.Creator)
+	enc.Encode(op.NewAccountName)
+	enc.Encode(op.Owner)
+	enc.Encode(op.Active)
+	enc.Encode(op.Posting)
+	enc.Encode(op.MemoKey)
+	enc.Encode(op.JsonMetadata)
+	return enc.Err()
+}
+
 type TransferToScorumpowerOperation struct {
 	From   string `json:"from"`
 	To     string `json:"to"`
@@ -206,7 +215,6 @@ type TransferToScorumpowerOperation struct {
 
 func (op *TransferToScorumpowerOperation) Type() OpType { return TransferToScorumpowerOpType }
 
-// AccountCreateOperation
 type AccountCreateOperation struct {
 	Fee            string    `json:"fee"`
 	Creator        string    `json:"creator"`
@@ -220,7 +228,6 @@ type AccountCreateOperation struct {
 
 func (op *AccountCreateOperation) Type() OpType { return AccountCreateOpType }
 
-// AccountWitnessVoteOperation
 type AccountWitnessVoteOperation struct {
 	Account string `json:"account"`
 	Witness string `json:"witness"`
@@ -238,7 +245,6 @@ func (op *AccountWitnessVoteOperation) MarshalTransaction(encoder *transaction.E
 	return enc.Err()
 }
 
-// WitnessUpdateOperation
 type WitnessUpdateOperation struct {
 	Owner           string                      `json:"owner"`
 	Url             string                      `json:"url"`
@@ -254,7 +260,6 @@ type WitnessUpdateOperationProps struct {
 	MaximumBlockSize   int32  `json:"maximum_block_size"`
 }
 
-// TransferOperation
 type TransferOperation struct {
 	From   string `json:"from"`
 	To     string `json:"to"`
@@ -274,7 +279,7 @@ func (op *TransferOperation) MarshalTransaction(encoder *transaction.Encoder) er
 	return enc.Err()
 }
 
-// Equal returns whether the numbers represented by d and d2 are equal.
+// Equals returns whether the numbers represented by d and d2 are equal.
 func (op TransferOperation) Equals(t2 TransferOperation) bool {
 	return op.To == t2.To &&
 		op.From == t2.From &&
@@ -282,7 +287,6 @@ func (op TransferOperation) Equals(t2 TransferOperation) bool {
 		op.Amount.Decimal().Equals(t2.Amount.Decimal())
 }
 
-// VoteOperation
 type VoteOperation struct {
 	Voter    string `json:"voter"`
 	Author   string `json:"author"`
@@ -328,8 +332,8 @@ func (op *DeleteCommentOperation) Type() OpType {
 	return DeleteCommentOpType
 }
 
-// Authors of posts may not want all of the benefits that come from creating a post. This
-// operation allows authors to update properties associated with their post.
+// CommentOptionsOperation operation allows authors to update properties associated with their post. Authors of posts
+// may not want all the benefits that come from creating a post.
 //
 // The max_accepted_payout may be decreased, but never increased.
 // The percent_scrs may be decreased, but never increased

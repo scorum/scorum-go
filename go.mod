@@ -8,12 +8,12 @@ require (
 	github.com/btcsuite/btcd v0.0.0-20180924021209-2a560b2036be
 	github.com/btcsuite/btcutil v0.0.0-20180706230648-ab6388e0c60a
 	github.com/davecgh/go-spew v1.1.1
+	github.com/elliotchance/orderedmap v1.4.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.4.0
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/pkg/errors v0.8.0
-	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/shopspring/decimal v1.1.0
-	github.com/stretchr/testify v1.2.2
-	golang.org/x/crypto v0.0.0-20181001203147-e3636079e1a4 // indirect
+	github.com/stretchr/testify v1.7.0
+	golang.org/x/crypto v0.0.0-20181001203147-e3636079e1a4
 )
