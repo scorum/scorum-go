@@ -153,6 +153,7 @@ var knownOperations = map[OpType]reflect.Type{
 	GameStatusChanged:                 reflect.TypeOf(GameStatusChangedVirtualOperation{}),
 	BetResolved:                       reflect.TypeOf(BetResolvedOperation{}),
 	BetCancelled:                      reflect.TypeOf(BetCancelledOperation{}),
+	DelegateSPFromRegPool:             reflect.TypeOf(DelegateSPFromRegPoolOperation{}),
 	CreateNFT:                         reflect.TypeOf(CreateNFTOperation{}),
 	UpdateNFTMetadata:                 reflect.TypeOf(UpdateNFTMetadataOperation{}),
 	CreateGameRound:                   reflect.TypeOf(CreateGameRoundOperation{}),
@@ -214,6 +215,15 @@ type TransferToScorumpowerOperation struct {
 }
 
 func (op *TransferToScorumpowerOperation) Type() OpType { return TransferToScorumpowerOpType }
+
+func (op *TransferToScorumpowerOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.Encode(op.From)
+	enc.Encode(op.To)
+	enc.EncodeMoney(op.Amount)
+	return enc.Err()
+}
 
 type AccountCreateOperation struct {
 	Fee            string    `json:"fee"`
@@ -390,6 +400,15 @@ type DelegateScorumpowerOperation struct {
 
 func (op *DelegateScorumpowerOperation) Type() OpType {
 	return DelegateScorumpower
+}
+
+func (op *DelegateScorumpowerOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.Encode(op.Delegatee)
+	enc.Encode(op.Delegator)
+	enc.EncodeMoney(op.Scorumpower)
+	return enc.Err()
 }
 
 type CreateGameOperation struct {
@@ -608,6 +627,25 @@ type BetCancelledOperation struct {
 
 func (op *BetCancelledOperation) Type() OpType {
 	return BetCancelled
+}
+
+type DelegateSPFromRegPoolOperation struct {
+	RegCommitteeMember string `json:"reg_committee_member"`
+	Delegatee          string `json:"delegatee"`
+	Scorumpower        string `json:"scorumpower"`
+}
+
+func (op *DelegateSPFromRegPoolOperation) Type() OpType {
+	return DelegateSPFromRegPool
+}
+
+func (op *DelegateSPFromRegPoolOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.Encode(op.RegCommitteeMember)
+	enc.Encode(op.Delegatee)
+	enc.EncodeMoney(op.Scorumpower)
+	return enc.Err()
 }
 
 type CreateNFTOperation struct {
