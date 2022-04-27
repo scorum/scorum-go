@@ -2,9 +2,9 @@ package scorumgo
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/scorum/scorum-go/apis/account_history"
 	"github.com/scorum/scorum-go/apis/betting"
 	"github.com/scorum/scorum-go/apis/blockchain_history"
@@ -60,41 +60,49 @@ func (client *Client) Close() error {
 	return client.cc.Close()
 }
 
-// Broadcast Sign the given operations with the wifs and broadcast them as one transaction
-func (client *Client) Broadcast(chain *sign.Chain, wifs []string, operations ...types.Operation) (*network_broadcast.BroadcastResponse, error) {
-	return client.BroadcastContext(context.Background(), chain, wifs, operations...)
+func (client *Client) BroadcastTransactionSynchronous(ctx context.Context, chain *sign.Chain, wifs []string, operations ...types.Operation) (*network_broadcast.BroadcastResponse, error) {
+	stx, err := client.createSignedTransaction(ctx, chain, wifs, operations...)
+	if err != nil {
+		return nil, err
+	}
+	return client.NetworkBroadcast.BroadcastTransactionSynchronous(ctx, stx.Transaction)
 }
 
-func (client *Client) BroadcastContext(ctx context.Context, chain *sign.Chain, wifs []string, operations ...types.Operation) (*network_broadcast.BroadcastResponse, error) {
+func (client *Client) BroadcastTransaction(ctx context.Context, chain *sign.Chain, wifs []string, operations ...types.Operation) error {
+	stx, err := client.createSignedTransaction(ctx, chain, wifs, operations...)
+	if err != nil {
+		return err
+	}
+	return client.NetworkBroadcast.BroadcastTransaction(ctx, stx.Transaction)
+}
+
+func (client *Client) createSignedTransaction(ctx context.Context, chain *sign.Chain, wifs []string, operations ...types.Operation) (*sign.SignedTransaction, error) {
 	props, err := client.Chain.GetChainProperties(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get dynamic global properties")
+		return nil, fmt.Errorf("get chain properties: %w", err)
 	}
 
 	block, err := client.BlockchainHistory.GetBlock(ctx, props.LastIrreversibleBlockNumber)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get block")
+		return nil, fmt.Errorf("blockchain history get block: %w", err)
 	}
 
 	refBlockPrefix, err := sign.RefBlockPrefix(block.Previous)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to sign block prefix")
+		return nil, fmt.Errorf("ref block prefix: %w", err)
 	}
 
 	expiration := props.Time.Add(10 * time.Minute)
 	stx := sign.NewSignedTransaction(&types.Transaction{
+		Operations:     operations,
 		RefBlockNum:    sign.RefBlockNum(props.LastIrreversibleBlockNumber - 1&0xffff),
 		RefBlockPrefix: refBlockPrefix,
 		Expiration:     &types.Time{Time: &expiration},
 	})
 
-	for _, op := range operations {
-		stx.PushOperation(op)
-	}
-
 	if err = stx.Sign(wifs, chain); err != nil {
-		return nil, errors.Wrap(err, "failed to sign the transaction")
+		return nil, fmt.Errorf("sign transaction: %w", err)
 	}
 
-	return client.NetworkBroadcast.BroadcastTransactionSynchronous(ctx, stx.Transaction)
+	return stx, nil
 }

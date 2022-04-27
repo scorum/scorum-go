@@ -8,7 +8,6 @@ import (
 
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcutil"
-	"github.com/pkg/errors"
 	"github.com/scorum/scorum-go/encoding/transaction"
 	"github.com/scorum/scorum-go/types"
 )
@@ -37,11 +36,11 @@ func (tx *SignedTransaction) Digest(chain *Chain) ([]byte, error) {
 	// Write the chain ID.
 	rawChainID, err := hex.DecodeString(chain.ID)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to decode chain ID: %v", chain.ID)
+		return nil, fmt.Errorf("failed to decode chain_id=%q:%w", chain.ID, err)
 	}
 
 	if _, err := msgBuffer.Write(rawChainID); err != nil {
-		return nil, errors.Wrap(err, "failed to write chain ID")
+		return nil, fmt.Errorf("failed to write chain ID: %w", err)
 	}
 
 	// Write the serialized transaction.
@@ -51,7 +50,7 @@ func (tx *SignedTransaction) Digest(chain *Chain) ([]byte, error) {
 	}
 
 	if _, err := msgBuffer.Write(rawTx); err != nil {
-		return nil, errors.Wrap(err, "failed to write serialized transaction")
+		return nil, fmt.Errorf("failed to write serialized transaction: %w", err)
 	}
 
 	// Compute the digest.

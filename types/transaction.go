@@ -1,6 +1,9 @@
 package types
 
 import (
+	"bytes"
+	"crypto/sha256"
+
 	"github.com/pkg/errors"
 	"github.com/scorum/scorum-go/encoding/transaction"
 )
@@ -11,6 +14,16 @@ type Transaction struct {
 	Expiration     *Time           `json:"expiration"`
 	Operations     OperationsArray `json:"operations"`
 	Signatures     []string        `json:"signatures"`
+}
+
+func (tx *Transaction) ID() ([]byte, error) {
+	var b bytes.Buffer
+	encoder := transaction.NewEncoder(&b)
+	if err := tx.MarshalTransaction(encoder); err != nil {
+		return nil, err
+	}
+	h := sha256.Sum256(b.Bytes())
+	return h[:20], nil
 }
 
 // MarshalTransaction implements transaction.Marshaller interface.

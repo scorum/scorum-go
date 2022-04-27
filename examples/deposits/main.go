@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/scorum/scorum-go"
+	scorumgo "github.com/scorum/scorum-go"
 	"github.com/scorum/scorum-go/apis/account_history"
 	"github.com/scorum/scorum-go/apis/blockchain_history"
 	"github.com/scorum/scorum-go/apis/chain"
@@ -214,7 +214,7 @@ func transfer(deposit *Deposit, amount types.Asset) {
 	}
 
 	// broadcast the transfer operation
-	resp, err := client.Broadcast(sign.TestChain, []string{paymentWIF}, &transferOp)
+	resp, err := client.BroadcastTransactionSynchronous(context.Background(), sign.TestChain, []string{paymentWIF}, &transferOp)
 	if err != nil {
 		log.Printf("failed to transfer %s to %s: %v", amount, deposit, err)
 		revertBalance()
