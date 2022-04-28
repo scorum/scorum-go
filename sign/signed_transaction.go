@@ -51,20 +51,15 @@ func (tx *SignedTransaction) Digest(chainID []byte) ([]byte, error) {
 	return digest[:], nil
 }
 
-func (tx *SignedTransaction) Sign(chainID []byte, wifs ...string) error {
+func (tx *SignedTransaction) Sign(chainID []byte, keys ...*key.PrivateKey) error {
 	digest, err := tx.Digest(chainID)
 	if err != nil {
 		return err
 	}
 
-	sigsHex := make([]string, len(wifs))
-	for i, wif := range wifs {
-		privKey, err := key.PrivateKeyFromString(wif)
-		if err != nil {
-			return err
-		}
-
-		sig := privKey.Sign(digest)
+	sigsHex := make([]string, len(keys))
+	for i, k := range keys {
+		sig := k.Sign(digest)
 		sigsHex[i] = hex.EncodeToString(sig)
 	}
 

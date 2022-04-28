@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/scorum/scorum-go/key"
+
 	scorumgo "github.com/scorum/scorum-go"
 	"github.com/scorum/scorum-go/apis/account_history"
 	"github.com/scorum/scorum-go/apis/blockchain_history"
@@ -36,6 +38,8 @@ var (
 	mutex sync.Mutex
 	// history seq cursor
 	seq uint32
+
+	privKey *key.PrivateKey
 )
 
 type Deposit struct {
@@ -48,6 +52,12 @@ type Deposit struct {
 }
 
 func main() {
+	var err error
+	privKey, err = key.PrivateKeyFromString(paymentWIF)
+	if err != nil {
+		log.Fatalf("failed to decode paymentWIF: %s", err.Error())
+	}
+
 	deposits = map[string]*Deposit{
 		"dep1": {ID: "dep1", Account: "noelle", Balance: decimal.Zero},
 		"dep2": {ID: "dep2", Account: "gina", Balance: decimal.Zero},
@@ -214,7 +224,7 @@ func transfer(deposit *Deposit, amount types.Asset) {
 	}
 
 	// broadcast the transfer operation
-	resp, err := client.BroadcastTransactionSynchronous(context.Background(), sign.TestNetChainID, []types.Operation{&transferOp}, paymentWIF)
+	resp, err := client.BroadcastTransactionSynchronous(context.Background(), sign.TestNetChainID, []types.Operation{&transferOp}, privKey)
 	if err != nil {
 		log.Printf("failed to transfer %s to %s: %v", amount, deposit, err)
 		revertBalance()

@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/scorum/scorum-go/key"
+
 	"github.com/davecgh/go-spew/spew"
 	"github.com/scorum/scorum-go/sign"
 	rpc "github.com/scorum/scorum-go/transport"
@@ -83,7 +85,9 @@ func TestGetAccountHistory(t *testing.T) {
 func TestClient_Broadcast_AccountWitnessVoteOperation(t *testing.T) {
 	client := newHTTPClient()
 
-	roselle := "5JwWJ2m2jGG9RPcpDix5AvkDzQZJoZvpUQScsDzzXWAKMs8Q6jH"
+	roselle, err := key.PrivateKeyFromString("5JwWJ2m2jGG9RPcpDix5AvkDzQZJoZvpUQScsDzzXWAKMs8Q6jH")
+	require.NoError(t, err)
+
 	ops := []types.Operation{
 		&types.AccountWitnessVoteOperation{
 			Account: "roselle",
@@ -91,7 +95,7 @@ func TestClient_Broadcast_AccountWitnessVoteOperation(t *testing.T) {
 			Approve: true,
 		},
 	}
-	_, err := client.BroadcastTransactionSynchronous(context.Background(), sign.TestNetChainID, ops, roselle)
+	_, err = client.BroadcastTransactionSynchronous(context.Background(), sign.TestNetChainID, ops, roselle)
 	require.NotNil(t, err)
 
 	perr, ok := err.(*rpc.RPCError)
@@ -104,7 +108,8 @@ func TestClient_Broadcast_Transfer(t *testing.T) {
 	client := newHTTPClient()
 	amount, _ := types.AssetFromString("0.000009 SCR")
 
-	azucena := "5J7FEcpqc1sZ7ZbKx2kVvBHx2oTjWG2wMU2e2FYX85sGA2qu8KT"
+	azucena, err := key.PrivateKeyFromString("5J7FEcpqc1sZ7ZbKx2kVvBHx2oTjWG2wMU2e2FYX85sGA2qu8KT")
+	require.NoError(t, err)
 	ops := []types.Operation{
 		&types.TransferOperation{
 			From:   "azucena",

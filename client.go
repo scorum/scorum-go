@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/scorum/scorum-go/key"
+
 	"github.com/scorum/scorum-go/apis/account_history"
 	"github.com/scorum/scorum-go/apis/betting"
 	"github.com/scorum/scorum-go/apis/blockchain_history"
@@ -60,23 +62,23 @@ func (client *Client) Close() error {
 	return client.cc.Close()
 }
 
-func (client *Client) BroadcastTransactionSynchronous(ctx context.Context, chainID []byte, operations []types.Operation, wifs ...string) (*network_broadcast.BroadcastResponse, error) {
-	stx, err := client.createSignedTransaction(ctx, chainID, operations, wifs...)
+func (client *Client) BroadcastTransactionSynchronous(ctx context.Context, chainID []byte, operations []types.Operation, keys ...*key.PrivateKey) (*network_broadcast.BroadcastResponse, error) {
+	stx, err := client.createSignedTransaction(ctx, chainID, operations, keys...)
 	if err != nil {
 		return nil, err
 	}
 	return client.NetworkBroadcast.BroadcastTransactionSynchronous(ctx, stx.Transaction)
 }
 
-func (client *Client) BroadcastTransaction(ctx context.Context, chainID []byte, operations []types.Operation, wifs ...string) error {
-	stx, err := client.createSignedTransaction(ctx, chainID, operations, wifs...)
+func (client *Client) BroadcastTransaction(ctx context.Context, chainID []byte, operations []types.Operation, keys ...*key.PrivateKey) error {
+	stx, err := client.createSignedTransaction(ctx, chainID, operations, keys...)
 	if err != nil {
 		return err
 	}
 	return client.NetworkBroadcast.BroadcastTransaction(ctx, stx.Transaction)
 }
 
-func (client *Client) createSignedTransaction(ctx context.Context, chainID []byte, operations []types.Operation, wifs ...string) (*sign.SignedTransaction, error) {
+func (client *Client) createSignedTransaction(ctx context.Context, chainID []byte, operations []types.Operation, keys ...*key.PrivateKey) (*sign.SignedTransaction, error) {
 	props, err := client.Chain.GetChainProperties(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get chainID properties: %w", err)
@@ -100,7 +102,7 @@ func (client *Client) createSignedTransaction(ctx context.Context, chainID []byt
 		Expiration:     &types.Time{Time: &expiration},
 	})
 
-	if err = stx.Sign(chainID, wifs...); err != nil {
+	if err = stx.Sign(chainID, keys...); err != nil {
 		return nil, fmt.Errorf("sign transaction: %w", err)
 	}
 
