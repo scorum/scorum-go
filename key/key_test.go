@@ -27,9 +27,19 @@ func TestPublicKey(t *testing.T) {
 		require.Equal(t, "", hex.EncodeToString(b.Bytes()))
 	})
 
-	t.Run("invalid key", func(t *testing.T) {
-		_, err := NewPublicKey("123")
-		require.EqualError(t, err, "wrong prefix")
+	t.Run("wrong key len", func(t *testing.T) {
+		_, err := NewPublicKey("")
+		require.ErrorIs(t, err, ErrWrongKeyLen)
+	})
+
+	t.Run("wrong prefix", func(t *testing.T) {
+		_, err := NewPublicKey("SSS11111111111111111111111111111111111111111111111111")
+		require.ErrorIs(t, err, ErrWrongPrefix)
+	})
+
+	t.Run("wrong check sum", func(t *testing.T) {
+		_, err := NewPublicKey("SCR11111111111111111111111111111111111111111111111111")
+		require.ErrorIs(t, err, ErrWrongChecksum)
 	})
 
 	t.Run("public key from string", func(t *testing.T) {
@@ -89,15 +99,13 @@ func TestSignAndValidate(t *testing.T) {
 	sig := pk.Sign(hash)
 	require.Equal(t, sigHex, hex.EncodeToString(sig))
 
-	ok, err := pk.PublicKey().Verify(hash, sig)
+	err = pk.PublicKey().Verify(hash, sig)
 	require.NoError(t, err)
-	require.True(t, ok)
 
-	t.Run("validate with wrong key return false", func(t *testing.T) {
+	t.Run("validate with wrong key key mismatch", func(t *testing.T) {
 		wrogKey, err := NewPublicKey("SCR5jPZF7PMgTpLqkdfpMu8kXea8Gio6E646aYpTgcjr9qMLrAgnL")
 		require.NoError(t, err)
-		ok, err := wrogKey.Verify(hash, sig)
-		require.NoError(t, err)
-		require.False(t, ok)
+		err = wrogKey.Verify(hash, sig)
+		require.ErrorIs(t, err, ErrKeyMismatch)
 	})
 }

@@ -3,6 +3,7 @@ package key
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/scorum/scorum-go/encoding/transaction"
@@ -15,11 +16,14 @@ import (
 const (
 	publicKeyPrefix = "SCR"
 	checkSumLen     = 4
+	keyLen          = 53
 )
 
 var (
 	ErrWrongPrefix   = errors.New("wrong prefix")
 	ErrWrongChecksum = errors.New("wrong check sum")
+	ErrWrongKeyLen   = errors.New("wrong key len")
+	ErrKeyMismatch   = errors.New("key mismatch")
 )
 
 type PublicKey struct {
@@ -27,10 +31,16 @@ type PublicKey struct {
 }
 
 func NewPublicKey(pubKey string) (*PublicKey, error) {
+	if len(pubKey) != keyLen {
+		return nil, ErrWrongKeyLen
+	}
+
 	if !strings.HasPrefix(pubKey, publicKeyPrefix) {
 		return nil, ErrWrongPrefix
 	}
+
 	keyWithChecksum := base58.Decode(pubKey[len(publicKeyPrefix):])
+
 	key := keyWithChecksum[:len(keyWithChecksum)-checkSumLen]
 
 	h := ripemd160.New()
@@ -69,13 +79,17 @@ func (p *PublicKey) Serialize() []byte {
 	return p.raw.SerializeCompressed()
 }
 
-func (p *PublicKey) Verify(digest []byte, signature []byte) (bool, error) {
+func (p *PublicKey) Verify(digest []byte, signature []byte) error {
 	pub, _, err := btcec.RecoverCompact(btcec.S256(), signature, digest)
 	if err != nil {
-		return false, err
+		return fmt.Errorf("recover compact: %w", err)
 	}
 
-	return p.raw.IsEqual(pub), nil
+	if !p.raw.IsEqual(pub) {
+		return ErrKeyMismatch
+	}
+
+	return nil
 }
 
 func (p *PublicKey) MarshalTransaction(encoder *transaction.Encoder) error {

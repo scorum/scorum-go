@@ -67,24 +67,24 @@ func (tx *SignedTransaction) Sign(chainID []byte, keys ...*key.PrivateKey) error
 	return nil
 }
 
-func (tx *SignedTransaction) Verify(chainID []byte, keys ...*key.PublicKey) (bool, error) {
+func (tx *SignedTransaction) Verify(chainID []byte, keys ...*key.PublicKey) error {
 	dig, err := tx.Digest(chainID)
 	if err != nil {
-		return false, fmt.Errorf("failed to get digest: %w", err)
+		return fmt.Errorf("failed to get digest: %w", err)
 	}
 
 	for _, signature := range tx.Signatures {
 		sig, err := hex.DecodeString(signature)
 		if err != nil {
-			return false, fmt.Errorf("failed to decode signature: %w", err)
+			return fmt.Errorf("failed to decode signature: %w", err)
 		}
 
 		for _, k := range keys {
-			if ok, err := k.Verify(dig, sig); err != nil || !ok {
-				return ok, fmt.Errorf("verify signature: %w", err)
+			if err := k.Verify(dig, sig); err != nil {
+				return fmt.Errorf("verify signature: %w", err)
 			}
 		}
 	}
 
-	return true, nil
+	return nil
 }

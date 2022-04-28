@@ -72,7 +72,5 @@ func TestTransaction_Verify(t *testing.T) {
 	pubKey, err := key.NewPublicKey("SCR7cTf2Dx9rxffs6E2z2pdn5cLMneo3AAFSsF9g4SaVviCYdfQ63")
 	require.NoError(t, err)
 
-	res, err := stx.Verify(TestNetChainID, pubKey)
-	require.NoError(t, err)
-	require.True(t, res)
+	require.NoError(t, stx.Verify(TestNetChainID, pubKey))
 }

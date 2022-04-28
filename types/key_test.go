@@ -11,27 +11,12 @@ import (
 )
 
 func TestPublicKey_MarshalTransaction(t *testing.T) {
-	t.Run("empty key", func(t *testing.T) {
-		var key PublicKey
-		var b bytes.Buffer
-		encoder := transaction.NewEncoder(&b)
-		require.EqualError(t, key.MarshalTransaction(encoder), "wrong prefix")
-		require.Equal(t, "", hex.EncodeToString(b.Bytes()))
-	})
+	var (
+		b       bytes.Buffer
+		key     PublicKey = "SCR5jPZF7PMgTpLqkdfpMu8kXea8Gio6E646aYpTgcjr9qMLrAgnL"
+		encoder           = transaction.NewEncoder(&b)
+	)
 
-	t.Run("invalid key", func(t *testing.T) {
-		key := PublicKey("123")
-		var b bytes.Buffer
-		encoder := transaction.NewEncoder(&b)
-		require.EqualError(t, key.MarshalTransaction(encoder), "wrong prefix")
-		require.Equal(t, "", hex.EncodeToString(b.Bytes()))
-	})
-
-	t.Run("valid key", func(t *testing.T) {
-		key := PublicKey("SCR5jPZF7PMgTpLqkdfpMu8kXea8Gio6E646aYpTgcjr9qMLrAgnL")
-		var b bytes.Buffer
-		encoder := transaction.NewEncoder(&b)
-		require.NoError(t, key.MarshalTransaction(encoder))
-		require.Equal(t, "026f0896f24d94252c351715bfe6052bbf9ea820e805bd47c2496c626d3467da5d", hex.EncodeToString(b.Bytes()))
-	})
+	require.NoError(t, key.MarshalTransaction(encoder))
+	require.Equal(t, "026f0896f24d94252c351715bfe6052bbf9ea820e805bd47c2496c626d3467da5d", hex.EncodeToString(b.Bytes()))
 }
