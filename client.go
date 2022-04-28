@@ -60,23 +60,23 @@ func (client *Client) Close() error {
 	return client.cc.Close()
 }
 
-func (client *Client) BroadcastTransactionSynchronous(ctx context.Context, chainID []byte, wifs []string, operations ...types.Operation) (*network_broadcast.BroadcastResponse, error) {
-	stx, err := client.createSignedTransaction(ctx, chainID, wifs, operations...)
+func (client *Client) BroadcastTransactionSynchronous(ctx context.Context, chainID []byte, operations []types.Operation, wifs ...string) (*network_broadcast.BroadcastResponse, error) {
+	stx, err := client.createSignedTransaction(ctx, chainID, operations, wifs...)
 	if err != nil {
 		return nil, err
 	}
 	return client.NetworkBroadcast.BroadcastTransactionSynchronous(ctx, stx.Transaction)
 }
 
-func (client *Client) BroadcastTransaction(ctx context.Context, chainID []byte, wifs []string, operations ...types.Operation) error {
-	stx, err := client.createSignedTransaction(ctx, chainID, wifs, operations...)
+func (client *Client) BroadcastTransaction(ctx context.Context, chainID []byte, operations []types.Operation, wifs ...string) error {
+	stx, err := client.createSignedTransaction(ctx, chainID, operations, wifs...)
 	if err != nil {
 		return err
 	}
 	return client.NetworkBroadcast.BroadcastTransaction(ctx, stx.Transaction)
 }
 
-func (client *Client) createSignedTransaction(ctx context.Context, chainID []byte, wifs []string, operations ...types.Operation) (*sign.SignedTransaction, error) {
+func (client *Client) createSignedTransaction(ctx context.Context, chainID []byte, operations []types.Operation, wifs ...string) (*sign.SignedTransaction, error) {
 	props, err := client.Chain.GetChainProperties(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get chainID properties: %w", err)

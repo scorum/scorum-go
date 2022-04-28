@@ -84,11 +84,14 @@ func TestClient_Broadcast_AccountWitnessVoteOperation(t *testing.T) {
 	client := newHTTPClient()
 
 	roselle := "5JwWJ2m2jGG9RPcpDix5AvkDzQZJoZvpUQScsDzzXWAKMs8Q6jH"
-	_, err := client.BroadcastTransactionSynchronous(context.Background(), sign.TestNetChainID, []string{roselle}, &types.AccountWitnessVoteOperation{
-		Account: "roselle",
-		Witness: "scorumwitness1",
-		Approve: true,
-	})
+	ops := []types.Operation{
+		&types.AccountWitnessVoteOperation{
+			Account: "roselle",
+			Witness: "scorumwitness1",
+			Approve: true,
+		},
+	}
+	_, err := client.BroadcastTransactionSynchronous(context.Background(), sign.TestNetChainID, ops, roselle)
 	require.NotNil(t, err)
 
 	perr, ok := err.(*rpc.RPCError)
@@ -102,12 +105,15 @@ func TestClient_Broadcast_Transfer(t *testing.T) {
 	amount, _ := types.AssetFromString("0.000009 SCR")
 
 	azucena := "5J7FEcpqc1sZ7ZbKx2kVvBHx2oTjWG2wMU2e2FYX85sGA2qu8KT"
-	resp, err := client.BroadcastTransactionSynchronous(context.Background(), sign.TestNetChainID, []string{azucena}, &types.TransferOperation{
-		From:   "azucena",
-		To:     "leonarda",
-		Amount: *amount,
-		Memo:   "1",
-	})
+	ops := []types.Operation{
+		&types.TransferOperation{
+			From:   "azucena",
+			To:     "leonarda",
+			Amount: *amount,
+			Memo:   "1",
+		},
+	}
+	resp, err := client.BroadcastTransactionSynchronous(context.Background(), sign.TestNetChainID, ops, azucena)
 	require.NoError(t, err)
 	require.NotEmpty(t, resp.ID)
 	require.NotEmpty(t, resp.BlockNum)
