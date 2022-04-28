@@ -3,8 +3,8 @@ package types
 import (
 	"bytes"
 	"crypto/sha256"
+	"errors"
 
-	"github.com/pkg/errors"
 	"github.com/scorum/scorum-go/encoding/transaction"
 )
 

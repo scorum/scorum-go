@@ -1,4 +1,4 @@
-package sign
+package key
 
 import (
 	"crypto/ecdsa"
@@ -9,8 +9,9 @@ import (
 	"log"
 	"math/big"
 
+	"github.com/scorum/scorum-go/key/rfc6979"
+
 	secp256k1 "github.com/btcsuite/btcd/btcec"
-	"github.com/scorum/scorum-go/sign/rfc6979"
 )
 
 func SignBufferSha256(bufSha256 []byte, privateKey *ecdsa.PrivateKey) []byte {

@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/hex"
 	"testing"
 
@@ -10,22 +9,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 )
-
-func TestWIFFromBytes(t *testing.T) {
-	brainKey := "gadger varna mormon leet archway chewer yank outbuzz mailbag region douc upshut basenji blankly moineau treen"
-	hash := sha256.Sum256([]byte(brainKey))
-
-	wif, err := WIFFromBytes(hash[:])
-	require.NoError(t, err)
-	require.Equal(t, "5KAZ2g22NCiM815YqjLGFYDqwBF4f2CYA9cFhhg9qg9Zf4xtAfh", wif.String())
-}
-
-func TestWIFFromBrainKey(t *testing.T) {
-	brainKey := "gadger varna mormon leet archway chewer yank outbuzz mailbag region douc upshut basenji blankly moineau treen"
-	wif, err := WIFFromBrainKey(brainKey)
-	require.NoError(t, err)
-	require.Equal(t, "5KAZ2g22NCiM815YqjLGFYDqwBF4f2CYA9cFhhg9qg9Zf4xtAfh", wif.String())
-}
 
 func TestPublicKey_MarshalTransaction(t *testing.T) {
 	t.Run("empty key", func(t *testing.T) {

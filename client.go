@@ -60,26 +60,26 @@ func (client *Client) Close() error {
 	return client.cc.Close()
 }
 
-func (client *Client) BroadcastTransactionSynchronous(ctx context.Context, chain *sign.Chain, wifs []string, operations ...types.Operation) (*network_broadcast.BroadcastResponse, error) {
-	stx, err := client.createSignedTransaction(ctx, chain, wifs, operations...)
+func (client *Client) BroadcastTransactionSynchronous(ctx context.Context, chainID []byte, wifs []string, operations ...types.Operation) (*network_broadcast.BroadcastResponse, error) {
+	stx, err := client.createSignedTransaction(ctx, chainID, wifs, operations...)
 	if err != nil {
 		return nil, err
 	}
 	return client.NetworkBroadcast.BroadcastTransactionSynchronous(ctx, stx.Transaction)
 }
 
-func (client *Client) BroadcastTransaction(ctx context.Context, chain *sign.Chain, wifs []string, operations ...types.Operation) error {
-	stx, err := client.createSignedTransaction(ctx, chain, wifs, operations...)
+func (client *Client) BroadcastTransaction(ctx context.Context, chainID []byte, wifs []string, operations ...types.Operation) error {
+	stx, err := client.createSignedTransaction(ctx, chainID, wifs, operations...)
 	if err != nil {
 		return err
 	}
 	return client.NetworkBroadcast.BroadcastTransaction(ctx, stx.Transaction)
 }
 
-func (client *Client) createSignedTransaction(ctx context.Context, chain *sign.Chain, wifs []string, operations ...types.Operation) (*sign.SignedTransaction, error) {
+func (client *Client) createSignedTransaction(ctx context.Context, chainID []byte, wifs []string, operations ...types.Operation) (*sign.SignedTransaction, error) {
 	props, err := client.Chain.GetChainProperties(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("get chain properties: %w", err)
+		return nil, fmt.Errorf("get chainID properties: %w", err)
 	}
 
 	block, err := client.BlockchainHistory.GetBlock(ctx, props.LastIrreversibleBlockNumber)
@@ -100,7 +100,7 @@ func (client *Client) createSignedTransaction(ctx context.Context, chain *sign.C
 		Expiration:     &types.Time{Time: &expiration},
 	})
 
-	if err = stx.Sign(wifs, chain); err != nil {
+	if err = stx.Sign(chainID, wifs...); err != nil {
 		return nil, fmt.Errorf("sign transaction: %w", err)
 	}
 

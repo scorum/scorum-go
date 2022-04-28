@@ -214,7 +214,7 @@ func transfer(deposit *Deposit, amount types.Asset) {
 	}
 
 	// broadcast the transfer operation
-	resp, err := client.BroadcastTransactionSynchronous(context.Background(), sign.TestChain, []string{paymentWIF}, &transferOp)
+	resp, err := client.BroadcastTransactionSynchronous(context.Background(), sign.TestNetChainID, []string{paymentWIF}, &transferOp)
 	if err != nil {
 		log.Printf("failed to transfer %s to %s: %v", amount, deposit, err)
 		revertBalance()

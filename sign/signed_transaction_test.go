@@ -6,9 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/btcsuite/btcutil/base58"
-	"github.com/scorum/scorum-go/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/scorum/scorum-go/key"
+	"github.com/scorum/scorum-go/types"
+)
+
+var (
+	zeroChainID, _ = hex.DecodeString("0000000000000000000000000000000000000000000000000000000000000000")
 )
 
 func TestTransaction_Digest(t *testing.T) {
@@ -27,13 +32,9 @@ func TestTransaction_Digest(t *testing.T) {
 		Weight:   10000,
 	})
 
-	var initChain = &Chain{
-		ID: "0000000000000000000000000000000000000000000000000000000000000000",
-	}
-
 	expected := "582176b1daf89984bc8b4fdcb24ff1433d1eb114a8c4bf20fb22ad580d035889"
 	stx := NewSignedTransaction(tx)
-	digest, err := stx.Digest(initChain)
+	digest, err := stx.Digest(zeroChainID)
 	require.NoError(t, err)
 	require.Equal(t, expected, hex.EncodeToString(digest))
 }
@@ -68,9 +69,10 @@ func TestTransaction_Verify(t *testing.T) {
 	err := json.Unmarshal([]byte(txStr), &tx)
 	stx := NewSignedTransaction(&tx)
 
-	keyWithChecksum := base58.Decode("7cTf2Dx9rxffs6E2z2pdn5cLMneo3AAFSsF9g4SaVviCYdfQ63")
+	pubKey, err := key.NewPublicKey("SCR7cTf2Dx9rxffs6E2z2pdn5cLMneo3AAFSsF9g4SaVviCYdfQ63")
+	require.NoError(t, err)
 
-	res, err := stx.Verify(TestChain, [][]byte{keyWithChecksum[:len(keyWithChecksum)-4]})
+	res, err := stx.Verify(TestNetChainID, pubKey)
 	require.NoError(t, err)
 	require.True(t, res)
 }
