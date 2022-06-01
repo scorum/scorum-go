@@ -69,6 +69,8 @@ var opTypes = []OpType{
 	UpdateNFTMetadata,
 	CreateGameRound,
 	UpdateGameRoundResult,
+	AdjustNFTExperience,
+	UpdateNFTName,
 
 	// virtual operations
 	CommentBenefactorReward,
@@ -153,6 +155,8 @@ const (
 	UpdateNFTMetadata     OpType = "update_nft_meta"
 	CreateGameRound       OpType = "create_game_round"
 	UpdateGameRoundResult OpType = "update_game_round_result"
+	AdjustNFTExperience   OpType = "adjust_nft_experience"
+	UpdateNFTName         OpType = "update_nft_name"
 
 	// virtual operations
 	AuthorReward                OpType = "author_reward"

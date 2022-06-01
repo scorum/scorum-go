@@ -690,6 +690,44 @@ func (op *UpdateNFTMetadataOperation) MarshalTransaction(encoder *transaction.En
 	return enc.Err()
 }
 
+type AdjustNFTExperienceOperation struct {
+	Moderator  string    `json:"moderator"`
+	UUID       uuid.UUID `json:"uuid"`
+	Experience int32     `json:"experience"`
+}
+
+func (op *AdjustNFTExperienceOperation) Type() OpType {
+	return AdjustNFTExperience
+}
+
+func (op *AdjustNFTExperienceOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.Encode(op.Moderator)
+	enc.EncodeUUID(op.UUID)
+	enc.Encode(op.Experience)
+	return enc.Err()
+}
+
+type UpdateNFTNameOperation struct {
+	Moderator string    `json:"moderator"`
+	UUID      uuid.UUID `json:"uuid"`
+	Name      string    `json:"name"`
+}
+
+func (op *UpdateNFTNameOperation) Type() OpType {
+	return UpdateNFTName
+}
+
+func (op *UpdateNFTNameOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.Encode(op.Moderator)
+	enc.EncodeUUID(op.UUID)
+	enc.Encode(op.Name)
+	return enc.Err()
+}
+
 type CreateGameRoundOperation struct {
 	Owner           string    `json:"owner"`
 	UUID            uuid.UUID `json:"uuid"`
