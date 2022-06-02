@@ -455,3 +455,38 @@ func TestAccountCreateByCommitteeOperation_MarshalTransaction(t *testing.T) {
 		hex.EncodeToString(b.Bytes()),
 	)
 }
+
+func TestAccountCreateOperation(t *testing.T) {
+	op := AccountCreateOperation{
+		Fee:            *AssetFromFloat(0.000000750),
+		Creator:        "alice",
+		NewAccountName: "bob",
+		Owner: Authority{
+			WeightThreshold: 1,
+			AccountAuths:    NewAccountAuthorityMap(),
+			KeyAuths:        NewKeyAuthorityMap(KeyAuthority{Key: "SCR7zPNg5nAsJjP9gvMfQ4UnAwDwf91WPYC8KFzobtMuQ52ns1D6T", Weight: 1}),
+		},
+		Active: Authority{
+			WeightThreshold: 1,
+			AccountAuths:    NewAccountAuthorityMap(),
+			KeyAuths:        NewKeyAuthorityMap(KeyAuthority{Key: "SCR7SHdKpjpWyfj32tGQBeijFfokmCARjKSBynqDwN1ZAbQRW5rWa", Weight: 1}),
+		},
+		Posting: Authority{
+			WeightThreshold: 1,
+			AccountAuths:    NewAccountAuthorityMap(),
+			KeyAuths:        NewKeyAuthorityMap(KeyAuthority{Key: "SCR5jPZF7PMgTpLqkdfpMu8kXea8Gio6E646aYpTgcjr9qMLrAgnL", Weight: 1}),
+		},
+		MemoKey:      "SCR5jPZF7PMgTpLqkdfpMu8kXea8Gio6E646aYpTgcjr9qMLrAgnL",
+		JsonMetadata: "",
+	}
+
+	var b bytes.Buffer
+	encoder := transaction.NewEncoder(&b)
+
+	require.NoError(t, op.MarshalTransaction(encoder))
+
+	require.Equal(t,
+		"06ee02000000000000095343520000000005616c69636503626f6201000000000103987a5a967458c114c15091198c06a822f54b494ea486204551a53f85effa31420100010000000001034f97d09e6de4778300ed176403e5b4298bfd62f0fb6edb4a6072e7214318d9030100010000000001026f0896f24d94252c351715bfe6052bbf9ea820e805bd47c2496c626d3467da5d0100026f0896f24d94252c351715bfe6052bbf9ea820e805bd47c2496c626d3467da5d00",
+		hex.EncodeToString(b.Bytes()),
+	)
+}

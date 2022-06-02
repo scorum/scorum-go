@@ -158,6 +158,8 @@ var knownOperations = map[OpType]reflect.Type{
 	UpdateNFTMetadata:                 reflect.TypeOf(UpdateNFTMetadataOperation{}),
 	CreateGameRound:                   reflect.TypeOf(CreateGameRoundOperation{}),
 	UpdateGameRoundResult:             reflect.TypeOf(UpdateGameRoundResultOperation{}),
+	AdjustNFTExperience:               reflect.TypeOf(AdjustNFTExperienceOperation{}),
+	UpdateNFTName:                     reflect.TypeOf(UpdateNFTNameOperation{}),
 }
 
 type UnknownOperation struct {
@@ -226,17 +228,31 @@ func (op *TransferToScorumpowerOperation) MarshalTransaction(encoder *transactio
 }
 
 type AccountCreateOperation struct {
-	Fee            string    `json:"fee"`
+	Fee            Asset     `json:"fee"`
 	Creator        string    `json:"creator"`
 	NewAccountName string    `json:"new_account_name"`
 	Owner          Authority `json:"owner"`
 	Active         Authority `json:"active"`
 	Posting        Authority `json:"posting"`
-	MemoKey        string    `json:"memo_key"`
+	MemoKey        PublicKey `json:"memo_key"`
 	JsonMetadata   string    `json:"json_metadata"`
 }
 
 func (op *AccountCreateOperation) Type() OpType { return AccountCreateOpType }
+
+func (op *AccountCreateOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.EncodeMoney(op.Fee.String())
+	enc.Encode(op.Creator)
+	enc.Encode(op.NewAccountName)
+	enc.Encode(op.Owner)
+	enc.Encode(op.Active)
+	enc.Encode(op.Posting)
+	enc.Encode(op.MemoKey)
+	enc.Encode(op.JsonMetadata)
+	return enc.Err()
+}
 
 type AccountWitnessVoteOperation struct {
 	Account string `json:"account"`
