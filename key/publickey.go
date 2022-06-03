@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/scorum/scorum-go/encoding/transaction"
-
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcutil/base58"
 	"golang.org/x/crypto/ripemd160"
+
+	"github.com/scorum/scorum-go/encoding/transaction"
 )
 
 const (

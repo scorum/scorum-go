@@ -27,7 +27,9 @@ type KeyAuthority struct {
 	Weight uint16
 }
 
-type KeyAuthorityMap orderedmap.OrderedMap
+type KeyAuthorityMap struct {
+	*orderedmap.OrderedMap
+}
 
 func NewKeyAuthorityMap(items ...KeyAuthority) *KeyAuthorityMap {
 	orderedMap := orderedmap.NewOrderedMap()
@@ -36,31 +38,15 @@ func NewKeyAuthorityMap(items ...KeyAuthority) *KeyAuthorityMap {
 		orderedMap.Set(v.Key, v.Weight)
 	}
 
-	return (*KeyAuthorityMap)(orderedMap)
-}
-
-func (m *KeyAuthorityMap) Set(key PublicKey, w uint16) bool {
-	orderedMap := (*orderedmap.OrderedMap)(m)
-	return orderedMap.Set(key, w)
-}
-
-func (m *KeyAuthorityMap) Get(key PublicKey) (uint16, bool) {
-	orderedMap := (*orderedmap.OrderedMap)(m)
-	v, ok := orderedMap.Get(key)
-	if !ok {
-		return 0, false
+	return &KeyAuthorityMap{
+		OrderedMap: orderedMap,
 	}
-
-	w, ok := v.(uint16)
-	return w, ok
 }
 
 func (m *KeyAuthorityMap) MarshalTransaction(encoder *transaction.Encoder) error {
-	orderedMap := (*orderedmap.OrderedMap)(m)
-
 	enc := transaction.NewRollingEncoder(encoder)
-	enc.Encode(uint8(orderedMap.Len()))
-	for el := orderedMap.Front(); el != nil; el = el.Next() {
+	enc.Encode(uint8(m.Len()))
+	for el := m.Front(); el != nil; el = el.Next() {
 		enc.Encode(el.Key)
 		enc.Encode(el.Value)
 	}
@@ -68,10 +54,8 @@ func (m *KeyAuthorityMap) MarshalTransaction(encoder *transaction.Encoder) error
 }
 
 func (m KeyAuthorityMap) MarshalJSON() ([]byte, error) {
-	orderedMap := (orderedmap.OrderedMap)(m)
-
-	xs := make([]interface{}, 0)
-	for el := orderedMap.Front(); el != nil; el = el.Next() {
+	xs := make([]interface{}, 0, m.Len())
+	for el := m.Front(); el != nil; el = el.Next() {
 		xs = append(xs, []interface{}{el.Key, el.Value})
 	}
 
@@ -84,8 +68,9 @@ func (m *KeyAuthorityMap) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	var invalid bool
 	orderedMap := orderedmap.NewOrderedMap()
+
+	var invalid bool
 	for _, kv := range xs {
 		if len(kv) != 2 {
 			invalid = true
@@ -115,7 +100,7 @@ func (m *KeyAuthorityMap) UnmarshalJSON(data []byte) error {
 		return errors.New("invalid map encoding")
 	}
 
-	*m = (KeyAuthorityMap)(*orderedMap)
+	m.OrderedMap = orderedMap
 
 	return nil
 }
@@ -125,7 +110,9 @@ type AccountAuthority struct {
 	Weight      uint16
 }
 
-type AccountAuthorityMap orderedmap.OrderedMap
+type AccountAuthorityMap struct {
+	*orderedmap.OrderedMap
+}
 
 func NewAccountAuthorityMap(items ...AccountAuthority) *AccountAuthorityMap {
 	orderedMap := orderedmap.NewOrderedMap()
@@ -134,31 +121,15 @@ func NewAccountAuthorityMap(items ...AccountAuthority) *AccountAuthorityMap {
 		orderedMap.Set(v.AccountName, v.Weight)
 	}
 
-	return (*AccountAuthorityMap)(orderedMap)
-}
-
-func (m *AccountAuthorityMap) Set(key PublicKey, w uint16) bool {
-	orderedMap := (*orderedmap.OrderedMap)(m)
-	return orderedMap.Set(key, w)
-}
-
-func (m *AccountAuthorityMap) Get(key PublicKey) (uint16, bool) {
-	orderedMap := (*orderedmap.OrderedMap)(m)
-	v, ok := orderedMap.Get(key)
-	if !ok {
-		return 0, false
+	return &AccountAuthorityMap{
+		OrderedMap: orderedMap,
 	}
-
-	w, ok := v.(uint16)
-	return w, ok
 }
 
 func (m *AccountAuthorityMap) MarshalTransaction(encoder *transaction.Encoder) error {
-	orderedMap := (*orderedmap.OrderedMap)(m)
-
 	enc := transaction.NewRollingEncoder(encoder)
-	enc.Encode(uint8(orderedMap.Len()))
-	for el := orderedMap.Front(); el != nil; el = el.Next() {
+	enc.Encode(uint8(m.Len()))
+	for el := m.Front(); el != nil; el = el.Next() {
 		enc.Encode(el.Key)
 		enc.Encode(el.Value)
 	}
@@ -166,10 +137,8 @@ func (m *AccountAuthorityMap) MarshalTransaction(encoder *transaction.Encoder) e
 }
 
 func (m AccountAuthorityMap) MarshalJSON() ([]byte, error) {
-	orderedMap := (orderedmap.OrderedMap)(m)
-
-	xs := make([]interface{}, orderedMap.Len())
-	for el := orderedMap.Front(); el != nil; el = el.Next() {
+	xs := make([]interface{}, 0, m.Len())
+	for el := m.Front(); el != nil; el = el.Next() {
 		xs = append(xs, []interface{}{el.Key, el.Value})
 	}
 
@@ -213,7 +182,7 @@ func (m *AccountAuthorityMap) UnmarshalJSON(data []byte) error {
 		return errors.New("invalid map encoding")
 	}
 
-	*m = (AccountAuthorityMap)(*orderedMap)
+	m.OrderedMap = orderedMap
 
 	return nil
 }
