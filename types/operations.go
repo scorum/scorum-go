@@ -391,7 +391,7 @@ type AccountUpdateOperation struct {
 	Owner        Authority `json:"owner"`
 	Active       Authority `json:"active"`
 	Posting      Authority `json:"posting"`
-	MemoKey      string    `json:"memo_key"`
+	MemoKey      PublicKey `json:"memo_key"`
 	JsonMetadata string    `json:"json_metadata"`
 }
 
