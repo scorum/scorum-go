@@ -399,6 +399,18 @@ func (op *AccountUpdateOperation) Type() OpType {
 	return AccountUpdateOpType
 }
 
+func (op *AccountUpdateOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.Encode(op.Account)
+	enc.Encode(op.Owner)
+	enc.Encode(op.Active)
+	enc.Encode(op.Posting)
+	enc.Encode(op.MemoKey)
+	enc.Encode(op.JsonMetadata)
+	return enc.Err()
+}
+
 type WithdrawScorumpowerOperation struct {
 	Account     string `json:"account"`
 	Scorumpower string `json:"scorumpower"`
