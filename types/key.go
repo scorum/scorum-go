@@ -17,7 +17,3 @@ func (k PublicKey) MarshalTransaction(encoder *transaction.Encoder) error {
 	enc.Encode(pubKey.Serialize())
 	return enc.Err()
 }
-
-func (k PublicKey) ToKey() (*key.PublicKey, error) {
-	return key.NewPublicKey(string(k))
-}
