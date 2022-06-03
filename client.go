@@ -2,6 +2,7 @@ package scorumgo
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -70,12 +71,15 @@ func (client *Client) BroadcastTransactionSynchronous(ctx context.Context, chain
 	return client.NetworkBroadcast.BroadcastTransactionSynchronous(ctx, stx.Transaction)
 }
 
-func (client *Client) BroadcastTransaction(ctx context.Context, chainID []byte, operations []types.Operation, keys ...*key.PrivateKey) error {
+func (client *Client) BroadcastTransaction(ctx context.Context, chainID []byte, operations []types.Operation, keys ...*key.PrivateKey) (string, error) {
 	stx, err := client.createSignedTransaction(ctx, chainID, operations, keys...)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return client.NetworkBroadcast.BroadcastTransaction(ctx, stx.Transaction)
+
+	id, _ := stx.ID()
+
+	return hex.EncodeToString(id), client.NetworkBroadcast.BroadcastTransaction(ctx, stx.Transaction)
 }
 
 func (client *Client) createSignedTransaction(ctx context.Context, chainID []byte, operations []types.Operation, keys ...*key.PrivateKey) (*sign.SignedTransaction, error) {
