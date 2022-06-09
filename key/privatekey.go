@@ -62,3 +62,16 @@ func (p *PrivateKey) PublicKey() *PublicKey {
 func (p *PrivateKey) Sign(hash []byte) []byte {
 	return SignBufferSha256(hash, p.wif.PrivKey.ToECDSA())
 }
+
+func (p *PrivateKey) MarshalText() (text []byte, err error) {
+	return []byte(p.wif.String()), nil
+}
+
+func (p *PrivateKey) UnmarshalText(text []byte) error {
+	w, err := btcutil.DecodeWIF(string(text))
+	if err != nil {
+		return fmt.Errorf("decode wif: %w", err)
+	}
+	p.wif = w
+	return nil
+}

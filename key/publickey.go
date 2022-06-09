@@ -101,3 +101,18 @@ func (p *PublicKey) MarshalTransaction(encoder *transaction.Encoder) error {
 	enc.Encode(p.raw.SerializeCompressed())
 	return enc.Err()
 }
+
+func (p *PublicKey) MarshalText() (text []byte, err error) {
+	return []byte(p.String()), nil
+}
+
+func (p *PublicKey) UnmarshalText(text []byte) error {
+	pk, err := NewPublicKey(string(text))
+	if err != nil {
+		return err
+	}
+
+	p.raw = pk.raw
+
+	return nil
+}
