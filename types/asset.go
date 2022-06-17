@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/scorum/scorum-go/encoding/transaction"
 	"github.com/shopspring/decimal"
 )
@@ -15,7 +14,7 @@ type Asset struct {
 	d decimal.Decimal
 }
 
-func AssetFromDecimal(d decimal.Decimal) *Asset{
+func AssetFromDecimal(d decimal.Decimal) *Asset {
 	return &Asset{d: d}
 }
 
@@ -24,19 +23,11 @@ func AssetFromFloat(value float64) *Asset {
 }
 
 func AssetFromString(value string) (*Asset, error) {
-	index := strings.Index(value, Symbol)
-	if index != -1 {
-		if len(value) == len(Symbol)+index {
-			value = value[0 : index-1]
-		} else {
-			return nil, errors.New(fmt.Sprintf("can't convert %s to asset", value))
-		}
-	}
-	d, err := decimal.NewFromString(value)
-	if err != nil {
+	var a Asset
+	if err := a.UnmarshalText([]byte(value)); err != nil {
 		return nil, err
 	}
-	return &Asset{d: d}, nil
+	return &a, nil
 }
 
 func (as Asset) String() string {
@@ -47,20 +38,26 @@ func (as Asset) Decimal() decimal.Decimal {
 	return as.d
 }
 
-func (as Asset) MarshalJSON() ([]byte, error) {
-	return []byte(`"` + as.String() + `"`), nil
+func (as *Asset) MarshalText() (text []byte, err error) {
+	return []byte(as.String()), nil
 }
 
-func (as *Asset) UnmarshalJSON(data []byte) (err error) {
-	str := string(data)
-	index := strings.Index(str, Symbol)
-	if index == -1 {
-		return errors.New("asset does not contain " + Symbol)
+func (as *Asset) UnmarshalText(data []byte) error {
+	value := string(data)
+	index := strings.Index(value, Symbol)
+	if index != -1 {
+		if len(value) == len(Symbol)+index {
+			value = value[0 : index-1]
+		} else {
+			return fmt.Errorf("can't convert %s to asset", value)
+		}
 	}
-
-	val := str[1 : index-1]
-	as.d, err = decimal.NewFromString(val)
-	return
+	d, err := decimal.NewFromString(value)
+	if err != nil {
+		return err
+	}
+	as.d = d
+	return nil
 }
 
 func (as Asset) MarshalTransaction(encoder *transaction.Encoder) error {

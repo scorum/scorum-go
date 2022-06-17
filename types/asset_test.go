@@ -8,7 +8,7 @@ import (
 
 func TestAsset_UnmarshalJSON(t *testing.T) {
 	var asset Asset
-	err := asset.UnmarshalJSON([]byte("\"1.3003 SCR\""))
+	err := asset.UnmarshalText([]byte("1.3003 SCR"))
 	require.NoError(t, err)
 
 	require.Equal(t, "1.300300000 SCR", asset.String())
@@ -16,9 +16,9 @@ func TestAsset_UnmarshalJSON(t *testing.T) {
 
 func TestAsset_MarshalJSON(t *testing.T) {
 	asset := AssetFromFloat(123.56)
-	bytes, err := asset.MarshalJSON()
+	bytes, err := asset.MarshalText()
 	require.NoError(t, err)
-	require.Equal(t, `"123.560000000 SCR"`, string(bytes))
+	require.Equal(t, `123.560000000 SCR`, string(bytes))
 }
 
 func TestAsset_String(t *testing.T) {
