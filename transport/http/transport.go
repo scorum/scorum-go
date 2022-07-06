@@ -5,27 +5,29 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
-	"math"
 	"net/http"
-	"sync"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/scorum/scorum-go/transport"
 )
+
+type requestIDGenerator interface {
+	Generate() uint64
+}
 
 type Transport struct {
 	Url    string
 	client *http.Client
 
-	requestID uint64
-	reqMutex  sync.Mutex
+	requestID requestIDGenerator
 }
 
 func NewTransport(url string, options ...func(*Transport)) *Transport {
 	t := Transport{
-		Url: url,
+		Url:       url,
+		requestID: transport.NewSequenceGenerator(0),
 	}
 
 	for _, o := range options {
@@ -48,35 +50,26 @@ func WithHttpClient(client *http.Client) func(*Transport) {
 }
 
 func (caller *Transport) Call(ctx context.Context, api string, method string, args []interface{}, reply interface{}) error {
-	caller.reqMutex.Lock()
-	defer caller.reqMutex.Unlock()
-
-	// increase request id
-	if caller.requestID == math.MaxUint64 {
-		caller.requestID = 0
-	}
-	caller.requestID++
-
 	request := transport.RPCRequest{
 		Method: "call",
-		ID:     caller.requestID,
+		ID:     caller.requestID.Generate(),
 		Params: []interface{}{api, method, args},
 	}
 
 	reqBody, err := json.Marshal(request)
 	if err != nil {
-		return err
+		return fmt.Errorf("json marshall: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, "POST", caller.Url, bytes.NewBuffer(reqBody))
 	if err != nil {
-		return err
+		return fmt.Errorf("http new request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := caller.client.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("http client do: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -84,14 +77,9 @@ func (caller *Transport) Call(ctx context.Context, api string, method string, ar
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return errors.Wrap(err, "failed to read body")
-	}
-
 	var rpcResponse transport.RPCResponse
-	if err = json.Unmarshal(respBody, &rpcResponse); err != nil {
-		return errors.Wrapf(err, "failed to unmarshal response: %+v", string(respBody))
+	if err := decodeJSON(resp.Body, &rpcResponse); err != nil {
+		return fmt.Errorf("failed decode rpc response: %w", err)
 	}
 
 	if rpcResponse.Error != nil {
@@ -99,8 +87,8 @@ func (caller *Transport) Call(ctx context.Context, api string, method string, ar
 	}
 
 	if rpcResponse.Result != nil {
-		if err := json.Unmarshal(*rpcResponse.Result, reply); err != nil {
-			return errors.Wrapf(err, "failed to unmarshal rpc result: %+v", string(*rpcResponse.Result))
+		if err := decodeJSON(bytes.NewReader(*rpcResponse.Result), reply); err != nil {
+			return fmt.Errorf("failed decode rpc result: %w", err)
 		}
 	}
 
@@ -112,5 +100,23 @@ func (caller *Transport) SetCallback(api string, method string, notice func(args
 }
 
 func (caller *Transport) Close() error {
+	return nil
+}
+
+func decodeJSON(reader io.Reader, out interface{}) error {
+	buf := new(bytes.Buffer)
+	tr := io.TeeReader(reader, buf)
+
+	data, err := ioutil.ReadAll(tr)
+	if err != nil {
+		return fmt.Errorf("failed to read body: %w", err)
+	}
+	if !json.Valid(data) {
+		return fmt.Errorf("invalid json: %q", buf.String())
+	}
+
+	if err := json.NewDecoder(buf).Decode(out); err != nil {
+		return fmt.Errorf("failed to decode json: %w", err)
+	}
 	return nil
 }
