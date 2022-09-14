@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"math/rand"
 	"strconv"
 	"sync"
 
 	"github.com/gorilla/websocket"
-	"github.com/pkg/errors"
 	"github.com/scorum/scorum-go/transport"
 )
 
@@ -55,20 +55,13 @@ func NewTransport(url string) (*Transport, error) {
 }
 
 func (caller *Transport) Call(ctx context.Context, api string, method string, args []interface{}, reply interface{}) error {
-	caller.reqMutex.Lock()
-	defer caller.reqMutex.Unlock()
-
 	caller.mutex.Lock()
 	if caller.closing || caller.shutdown {
 		caller.mutex.Unlock()
 		return transport.ErrShutdown
 	}
 
-	// increase request id
-	if caller.requestID == math.MaxUint64 {
-		caller.requestID = 0
-	}
-	caller.requestID++
+	caller.requestID = uint64(rand.Uint32())
 	seq := caller.requestID
 
 	c := &callRequest{
@@ -83,11 +76,21 @@ func (caller *Transport) Call(ctx context.Context, api string, method string, ar
 		Params: []interface{}{api, method, args},
 	}
 
-	// send Json Rcp request
-	if err := caller.conn.WriteJSON(request); err != nil {
-		caller.mutex.Lock()
-		delete(caller.pending, seq)
-		caller.mutex.Unlock()
+	fn := func() error {
+		// send Json Rcp request
+		caller.reqMutex.Lock()
+		defer caller.reqMutex.Unlock()
+
+		if err := caller.conn.WriteJSON(request); err != nil {
+			caller.mutex.Lock()
+			delete(caller.pending, seq)
+			caller.mutex.Unlock()
+			return err
+		}
+		return nil
+	}
+
+	if err := fn(); err != nil {
 		return err
 	}
 
@@ -117,24 +120,28 @@ func (caller *Transport) input() {
 		if err := json.Unmarshal(message, &response); err != nil {
 			caller.stop(err)
 			return
+		}
+
+		caller.mutex.Lock()
+		call, ok := caller.pending[response.ID]
+		caller.mutex.Unlock()
+
+		if ok {
+			caller.onCallResponse(response, call)
 		} else {
-			if call, ok := caller.pending[response.ID]; ok {
-				caller.onCallResponse(response, call)
-			} else {
-				// the message is not a pending call, but probably a callback notice
-				var incoming transport.RPCIncoming
-				if err := json.Unmarshal(message, &incoming); err != nil {
+			// the message is not a pending call, but probably a callback notice
+			var incoming transport.RPCIncoming
+			if err := json.Unmarshal(message, &incoming); err != nil {
+				caller.stop(err)
+				return
+			}
+			if incoming.Method == "notice" {
+				if err := caller.onNotice(incoming); err != nil {
 					caller.stop(err)
 					return
 				}
-				if incoming.Method == "notice" {
-					if err := caller.onNotice(incoming); err != nil {
-						caller.stop(err)
-						return
-					}
-				} else {
-					log.Printf("protocol error: unknown message received: %+v\n", incoming)
-				}
+			} else {
+				log.Printf("protocol error: unknown message received: %+v\n", incoming)
 			}
 		}
 	}
@@ -142,13 +149,13 @@ func (caller *Transport) input() {
 
 // Return pending clients and shutdown the client
 func (caller *Transport) stop(err error) {
-	caller.reqMutex.Lock()
+	// caller.reqMutex.Lock()
 	caller.shutdown = true
 	for _, call := range caller.pending {
 		call.Error = err
 		call.Done <- true
 	}
-	caller.reqMutex.Unlock()
+	// caller.reqMutex.Unlock()
 }
 
 // Call response handler
@@ -178,7 +185,7 @@ func (caller *Transport) onNotice(incoming transport.RPCIncoming) error {
 	for i := 0; i < length; i += 2 {
 		callbackID, err := strconv.ParseUint(string(incoming.Params[i]), 10, 64)
 		if err != nil {
-			return errors.Wrapf(err, "failed to parse %s as callbackID in notice %+v", incoming.Params[i], incoming)
+			return fmt.Errorf("failed to parse callbackID: %w", err)
 		}
 
 		notice := caller.callbacks[callbackID]
