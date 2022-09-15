@@ -64,7 +64,7 @@ func (client *Client) Close() error {
 }
 
 func (client *Client) BroadcastTransactionSynchronous(ctx context.Context, chainID []byte, operations []types.Operation, keys ...*key.PrivateKey) (*network_broadcast.BroadcastResponse, error) {
-	stx, err := client.createSignedTransaction(ctx, chainID, operations, keys...)
+	stx, err := client.CreateSignedTransaction(ctx, chainID, operations, keys...)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (client *Client) BroadcastTransactionSynchronous(ctx context.Context, chain
 }
 
 func (client *Client) BroadcastTransaction(ctx context.Context, chainID []byte, operations []types.Operation, keys ...*key.PrivateKey) (string, error) {
-	stx, err := client.createSignedTransaction(ctx, chainID, operations, keys...)
+	stx, err := client.CreateSignedTransaction(ctx, chainID, operations, keys...)
 	if err != nil {
 		return "", err
 	}
@@ -82,7 +82,7 @@ func (client *Client) BroadcastTransaction(ctx context.Context, chainID []byte, 
 	return hex.EncodeToString(id), client.NetworkBroadcast.BroadcastTransaction(ctx, stx.Transaction)
 }
 
-func (client *Client) createSignedTransaction(ctx context.Context, chainID []byte, operations []types.Operation, keys ...*key.PrivateKey) (*sign.SignedTransaction, error) {
+func (client *Client) CreateSignedTransaction(ctx context.Context, chainID []byte, operations []types.Operation, keys ...*key.PrivateKey) (*sign.SignedTransaction, error) {
 	props, err := client.Chain.GetChainProperties(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get chainID properties: %w", err)
