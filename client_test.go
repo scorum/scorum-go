@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/scorum/scorum-go/key"
-
 	"github.com/davecgh/go-spew/spew"
+	gorilla "github.com/gorilla/websocket"
+	"github.com/scorum/scorum-go/key"
 	"github.com/scorum/scorum-go/sign"
 	rpc "github.com/scorum/scorum-go/transport"
 	"github.com/scorum/scorum-go/transport/http"
@@ -25,10 +25,10 @@ const (
 // test accounts available at https://github.com/scorum/scorum/wiki/Testnet-existent-accounts
 
 func newWebsocketClient(t *testing.T) *Client {
-	transport, err := websocket.NewTransport(nodeWSS)
+	ws, _, err := gorilla.DefaultDialer.Dial(nodeWSS, nil)
 	require.NoError(t, err)
-	client := NewClient(transport)
-	return client
+
+	return NewClient(websocket.NewTransport(ws))
 }
 
 func newHTTPClient() *Client {

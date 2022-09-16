@@ -3,23 +3,35 @@ package websocket
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"math"
 	"math/rand"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/scorum/scorum-go/transport"
 )
 
-type Transport struct {
-	conn *websocket.Conn
+var (
+	ErrWaitResponseTimeout = errors.New("wait response timeout")
+)
 
-	reqMutex  sync.Mutex
-	requestID uint64
-	pending   map[uint64]*callRequest
+type connection interface {
+	WriteJSON(v interface{}) error
+	ReadMessage() (messageType int, p []byte, err error)
+	WriteMessage(messageType int, data []byte) error
+	Close() error
+}
+
+type Transport struct {
+	conn connection
+
+	reqMutex sync.Mutex
+	pending  map[uint64]*callRequest
 
 	callbackMutex sync.Mutex
 	callbackID    uint64
@@ -27,6 +39,8 @@ type Transport struct {
 
 	closing  bool // user has called Close
 	shutdown bool // server has told us to stop
+
+	waitResponseTimeout time.Duration
 
 	mutex sync.Mutex
 }
@@ -38,106 +52,106 @@ type callRequest struct {
 	Reply *json.RawMessage // reply message
 }
 
-func NewTransport(url string) (*Transport, error) {
-	ws, _, err := websocket.DefaultDialer.Dial(url, nil)
-	if err != nil {
-		return nil, err
+func NewTransport(conn connection) *Transport {
+	tr := Transport{
+		conn:                conn,
+		pending:             make(map[uint64]*callRequest),
+		callbacks:           make(map[uint64]func(args json.RawMessage)),
+		waitResponseTimeout: 10 * time.Second,
 	}
 
-	client := &Transport{
-		conn:      ws,
-		pending:   make(map[uint64]*callRequest),
-		callbacks: make(map[uint64]func(args json.RawMessage)),
-	}
+	go tr.readPump()
 
-	go client.input()
-	return client, nil
+	return &tr
 }
 
-func (caller *Transport) Call(ctx context.Context, api string, method string, args []interface{}, reply interface{}) error {
-	caller.mutex.Lock()
-	if caller.closing || caller.shutdown {
-		caller.mutex.Unlock()
+func (tr *Transport) Call(ctx context.Context, api string, method string, args []interface{}, reply interface{}) error {
+	var (
+		requestID = uint64(rand.Uint32())
+		call      = callRequest{Done: make(chan bool, 1)}
+	)
+
+	tr.mutex.Lock()
+	if tr.closing || tr.shutdown {
+		tr.mutex.Unlock()
 		return transport.ErrShutdown
 	}
+	tr.pending[requestID] = &call
+	tr.mutex.Unlock()
 
-	caller.requestID = uint64(rand.Uint32())
-	seq := caller.requestID
+	send := func(v interface{}) error {
+		tr.reqMutex.Lock()
+		defer tr.reqMutex.Unlock()
 
-	c := &callRequest{
-		Done: make(chan bool, 1),
+		return tr.conn.WriteJSON(v)
 	}
-	caller.pending[seq] = c
-	caller.mutex.Unlock()
 
-	request := transport.RPCRequest{
+	r := transport.RPCRequest{
 		Method: "call",
-		ID:     caller.requestID,
+		ID:     requestID,
 		Params: []interface{}{api, method, args},
 	}
 
-	fn := func() error {
-		// send Json Rcp request
-		caller.reqMutex.Lock()
-		defer caller.reqMutex.Unlock()
+	if err := send(&r); err != nil {
+		tr.mutex.Lock()
+		delete(tr.pending, requestID)
+		tr.mutex.Unlock()
 
-		if err := caller.conn.WriteJSON(request); err != nil {
-			caller.mutex.Lock()
-			delete(caller.pending, seq)
-			caller.mutex.Unlock()
-			return err
-		}
-		return nil
+		return fmt.Errorf("send: %w", err)
 	}
 
-	if err := fn(); err != nil {
-		return err
+	select {
+	case <-time.After(tr.waitResponseTimeout):
+		return ErrWaitResponseTimeout
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-call.Done:
+		// wait for the call to complete
 	}
 
-	// wait for the call to complete
-	<-c.Done
-	if c.Error != nil {
-		return c.Error
+	if call.Error != nil {
+		return call.Error
 	}
 
-	if c.Reply != nil {
-		if err := json.Unmarshal(*c.Reply, reply); err != nil {
-			return err
+	if call.Reply != nil {
+		if err := json.Unmarshal(*call.Reply, reply); err != nil {
+			return fmt.Errorf("json unmarshall: %w", err)
 		}
 	}
 	return nil
 }
 
-func (caller *Transport) input() {
+// readPump pumps messages from the websocket connection and dispatches them.
+func (tr *Transport) readPump() {
 	for {
-		_, message, err := caller.conn.ReadMessage()
+		_, message, err := tr.conn.ReadMessage()
 		if err != nil {
-			caller.stop(err)
+			tr.stop(err)
 			return
 		}
 
 		var response transport.RPCResponse
 		if err := json.Unmarshal(message, &response); err != nil {
-			caller.stop(err)
+			tr.stop(fmt.Errorf("json unmarshal: %w", err))
 			return
 		}
 
-		caller.mutex.Lock()
-		call, ok := caller.pending[response.ID]
-		caller.mutex.Unlock()
+		tr.mutex.Lock()
+		call, ok := tr.pending[response.ID]
+		tr.mutex.Unlock()
 
 		if ok {
-			caller.onCallResponse(response, call)
+			tr.onCallResponse(response, call)
 		} else {
 			// the message is not a pending call, but probably a callback notice
 			var incoming transport.RPCIncoming
 			if err := json.Unmarshal(message, &incoming); err != nil {
-				caller.stop(err)
+				tr.stop(fmt.Errorf("json unmarshall: %w", err))
 				return
 			}
 			if incoming.Method == "notice" {
-				if err := caller.onNotice(incoming); err != nil {
-					caller.stop(err)
+				if err := tr.onNotice(incoming); err != nil {
+					tr.stop(err)
 					return
 				}
 			} else {
@@ -148,30 +162,32 @@ func (caller *Transport) input() {
 }
 
 // Return pending clients and shutdown the client
-func (caller *Transport) stop(err error) {
-	// caller.reqMutex.Lock()
-	caller.shutdown = true
-	for _, call := range caller.pending {
+func (tr *Transport) stop(err error) {
+	tr.mutex.Lock()
+	defer tr.mutex.Unlock()
+
+	tr.shutdown = true
+	for _, call := range tr.pending {
 		call.Error = err
 		call.Done <- true
 	}
-	// caller.reqMutex.Unlock()
 }
 
 // Call response handler
-func (caller *Transport) onCallResponse(response transport.RPCResponse, call *callRequest) {
-	caller.mutex.Lock()
-	delete(caller.pending, response.ID)
+func (tr *Transport) onCallResponse(response transport.RPCResponse, call *callRequest) {
+	tr.mutex.Lock()
+	defer tr.mutex.Unlock()
+
+	delete(tr.pending, response.ID)
 	if response.Error != nil {
 		call.Error = response.Error
 	}
 	call.Reply = response.Result
 	call.Done <- true
-	caller.mutex.Unlock()
 }
 
 // Incoming notice handler
-func (caller *Transport) onNotice(incoming transport.RPCIncoming) error {
+func (tr *Transport) onNotice(incoming transport.RPCIncoming) error {
 	length := len(incoming.Params)
 
 	if length == 0 {
@@ -188,7 +204,7 @@ func (caller *Transport) onNotice(incoming transport.RPCIncoming) error {
 			return fmt.Errorf("failed to parse callbackID: %w", err)
 		}
 
-		notice := caller.callbacks[callbackID]
+		notice := tr.callbacks[callbackID]
 		if notice == nil {
 			return fmt.Errorf("callback %d is not registered", callbackID)
 		}
@@ -200,28 +216,41 @@ func (caller *Transport) onNotice(incoming transport.RPCIncoming) error {
 	return nil
 }
 
-func (caller *Transport) SetCallback(api string, method string, notice func(args json.RawMessage)) error {
+func (tr *Transport) SetCallback(api string, method string, notice func(args json.RawMessage)) error {
 	// increase callback id
-	caller.callbackMutex.Lock()
-	if caller.callbackID == math.MaxUint64 {
-		caller.callbackID = 0
+	tr.callbackMutex.Lock()
+	if tr.callbackID == math.MaxUint64 {
+		tr.callbackID = 0
 	}
-	caller.callbackID++
-	caller.callbacks[caller.callbackID] = notice
-	caller.callbackMutex.Unlock()
+	tr.callbackID++
+	tr.callbacks[tr.callbackID] = notice
+	tr.callbackMutex.Unlock()
 
-	return caller.Call(context.Background(), api, method, []interface{}{caller.callbackID}, nil)
+	return tr.Call(context.Background(), api, method, []interface{}{tr.callbackID}, nil)
 }
 
 // Close calls the underlying web socket Close method. If the connection is already
 // shutting down, ErrShutdown is returned.
-func (caller *Transport) Close() error {
-	caller.mutex.Lock()
-	if caller.closing {
-		caller.mutex.Unlock()
+func (tr *Transport) Close() error {
+	tr.mutex.Lock()
+	if tr.closing {
+		tr.mutex.Unlock()
 		return transport.ErrShutdown
 	}
-	caller.closing = true
-	caller.mutex.Unlock()
-	return caller.conn.Close()
+	tr.closing = true
+	tr.mutex.Unlock()
+
+	tr.reqMutex.Lock()
+	defer tr.reqMutex.Unlock()
+
+	err := tr.conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+	if err != nil {
+		log.Println("write close:", err)
+	}
+
+	if err := tr.conn.Close(); err != nil {
+		return fmt.Errorf("conn close: %w", err)
+	}
+
+	return nil
 }

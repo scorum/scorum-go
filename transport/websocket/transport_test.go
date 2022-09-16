@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"context"
+	"github.com/gorilla/websocket"
 	"sync"
 	"testing"
 
@@ -14,7 +15,10 @@ const (
 )
 
 func TestUnknownAPIID(t *testing.T) {
-	caller, err := NewTransport(nodeWSS)
+	ws, _, err := websocket.DefaultDialer.Dial(nodeWSS, nil)
+	require.NoError(t, err)
+
+	caller := NewTransport(ws)
 	require.NoError(t, err)
 	defer caller.Close()
 
@@ -27,7 +31,10 @@ func TestUnknownAPIID(t *testing.T) {
 }
 
 func TestUnknownMethod(t *testing.T) {
-	caller, err := NewTransport(nodeWSS)
+	ws, _, err := websocket.DefaultDialer.Dial(nodeWSS, nil)
+	require.NoError(t, err)
+
+	caller := NewTransport(ws)
 	require.NoError(t, err)
 	defer caller.Close()
 
@@ -40,7 +47,10 @@ func TestUnknownMethod(t *testing.T) {
 }
 
 func TestTooFewArgumentsPassedToMethod(t *testing.T) {
-	caller, err := NewTransport(nodeWSS)
+	ws, _, err := websocket.DefaultDialer.Dial(nodeWSS, nil)
+	require.NoError(t, err)
+
+	caller := NewTransport(ws)
 	require.NoError(t, err)
 	defer caller.Close()
 
@@ -53,7 +63,10 @@ func TestTooFewArgumentsPassedToMethod(t *testing.T) {
 }
 
 func TestParallel(t *testing.T) {
-	caller, err := NewTransport(nodeWSS)
+	ws, _, err := websocket.DefaultDialer.Dial(nodeWSS, nil)
+	require.NoError(t, err)
+
+	caller := NewTransport(ws)
 	require.NoError(t, err)
 	defer caller.Close()
 
