@@ -5,15 +5,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/scorum/scorum-go/rpc"
+	"github.com/scorum/scorum-go/rpc/protocol"
+
 	"github.com/davecgh/go-spew/spew"
-	gorilla "github.com/gorilla/websocket"
+	"github.com/gorilla/websocket"
+	"github.com/stretchr/testify/require"
+
 	"github.com/scorum/scorum-go/key"
 	"github.com/scorum/scorum-go/sign"
-	rpc "github.com/scorum/scorum-go/transport"
-	"github.com/scorum/scorum-go/transport/http"
-	"github.com/scorum/scorum-go/transport/websocket"
 	"github.com/scorum/scorum-go/types"
-	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -25,21 +26,19 @@ const (
 // test accounts available at https://github.com/scorum/scorum/wiki/Testnet-existent-accounts
 
 func newWebsocketClient(t *testing.T) *Client {
-	ws, _, err := gorilla.DefaultDialer.Dial(nodeWSS, nil)
+	ws, _, err := websocket.DefaultDialer.Dial(nodeWSS, nil)
 	require.NoError(t, err)
 
-	return NewClient(websocket.NewTransport(ws))
+	return NewClient(rpc.NewWebSocketTransport(ws))
 }
 
 func newHTTPClient() *Client {
-	transport := http.NewTransport(nodeHTTPS)
-	client := NewClient(transport)
+	client := NewClient(rpc.NewHTTPTransport(nodeHTTPS))
 	return client
 }
 
 func newMainNetHTTPClient() *Client {
-	transport := http.NewTransport(mainNetNodeHTTP)
-	client := NewClient(transport)
+	client := NewClient(rpc.NewHTTPTransport(mainNetNodeHTTP))
 	return client
 }
 
@@ -98,7 +97,7 @@ func TestClient_Broadcast_AccountWitnessVoteOperation(t *testing.T) {
 	_, err = client.BroadcastTransactionSynchronous(context.Background(), sign.TestNetChainID, ops, roselle)
 	require.NotNil(t, err)
 
-	perr, ok := err.(*rpc.RPCError)
+	perr, ok := err.(*protocol.RPCError)
 	require.True(t, ok)
 	require.Equal(t, "assert_exception", perr.Data.Name)
 	require.Equal(t, int(10), perr.Data.Code)

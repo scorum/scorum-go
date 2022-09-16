@@ -15,14 +15,14 @@ import "github.com/scorum/scorum-go"
 ## Example
 ```go
 import (
- scorum "github.com/scorum/scorum-go"
- "github.com/scorum/scorum-go/transport/http"
+    scorum "github.com/scorum/scorum-go"
+    "github.com/scorum/scorum-go/rpc"
 )
 
 const testNet = "https://testnet.scorum.com"
 
 // create client
-transport := http.NewTransport(testNet)
+transport := rpc.NewHTTPTransport(testNet)
 client := NewClient(transport)
 
 // get last 100 transactions of the particular account

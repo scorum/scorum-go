@@ -2,6 +2,7 @@ package betting
 
 import (
 	"github.com/google/uuid"
+
 	"github.com/scorum/scorum-go/types"
 )
 

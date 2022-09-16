@@ -2,18 +2,18 @@ package blockchain_history
 
 import (
 	"context"
+	"math"
 	"testing"
 
-	"math"
-
-	"github.com/scorum/scorum-go/transport/http"
 	"github.com/stretchr/testify/require"
+
+	"github.com/scorum/scorum-go/rpc"
 )
 
 const nodeHTTPS = "https://testnet.scorum.work"
 
 func TestGetBlockHeader(t *testing.T) {
-	transport := http.NewTransport(nodeHTTPS)
+	transport := rpc.NewHTTPTransport(nodeHTTPS)
 	api := NewAPI(transport)
 
 	block, err := api.GetBlockHeader(context.Background(), 24)
@@ -24,7 +24,7 @@ func TestGetBlockHeader(t *testing.T) {
 }
 
 func TestGetBlock(t *testing.T) {
-	transport := http.NewTransport(nodeHTTPS)
+	transport := rpc.NewHTTPTransport(nodeHTTPS)
 	api := NewAPI(transport)
 
 	block, err := api.GetBlock(context.Background(), uint32(50))
@@ -37,7 +37,7 @@ func TestGetBlock(t *testing.T) {
 }
 
 func TestGetOperationsInBlock(t *testing.T) {
-	transport := http.NewTransport(nodeHTTPS)
+	transport := rpc.NewHTTPTransport(nodeHTTPS)
 	api := NewAPI(transport)
 
 	ops, err := api.GetOperationsInBlock(context.Background(), uint32(127), AllOp)
@@ -50,7 +50,7 @@ func TestGetOperationsInBlock(t *testing.T) {
 }
 
 func TestGetBlocksHistory(t *testing.T) {
-	transport := http.NewTransport(nodeHTTPS)
+	transport := rpc.NewHTTPTransport(nodeHTTPS)
 	api := NewAPI(transport)
 
 	t.Run("from beginning", func(t *testing.T) {
@@ -73,7 +73,7 @@ func TestGetBlocksHistory(t *testing.T) {
 }
 
 func TestGetBlocks(t *testing.T) {
-	transport := http.NewTransport(nodeHTTPS)
+	transport := rpc.NewHTTPTransport(nodeHTTPS)
 	api := NewAPI(transport)
 
 	t.Run("from beginning", func(t *testing.T) {

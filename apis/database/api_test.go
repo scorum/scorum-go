@@ -4,14 +4,15 @@ import (
 	"context"
 	"testing"
 
-	"github.com/scorum/scorum-go/transport/http"
 	"github.com/stretchr/testify/require"
+
+	"github.com/scorum/scorum-go/rpc"
 )
 
 const nodeHTTPS = "https://testnet.scorum.work"
 
 func TestGetAccountsCount(t *testing.T) {
-	transport := http.NewTransport(nodeHTTPS)
+	transport := rpc.NewHTTPTransport(nodeHTTPS)
 	api := NewAPI(transport)
 
 	count, err := api.GetAccountsCount(context.Background())
@@ -20,7 +21,7 @@ func TestGetAccountsCount(t *testing.T) {
 }
 
 func TestGetConfig(t *testing.T) {
-	transport := http.NewTransport(nodeHTTPS)
+	transport := rpc.NewHTTPTransport(nodeHTTPS)
 	api := NewAPI(transport)
 
 	config, err := api.GetConfig(context.Background())
@@ -29,7 +30,7 @@ func TestGetConfig(t *testing.T) {
 }
 
 func TestLookupAccounts(t *testing.T) {
-	transport := http.NewTransport(nodeHTTPS)
+	transport := rpc.NewHTTPTransport(nodeHTTPS)
 	api := NewAPI(transport)
 
 	t.Run("from beginning", func(t *testing.T) {

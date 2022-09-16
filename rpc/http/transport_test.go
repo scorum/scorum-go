@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/scorum/scorum-go/transport"
 	"github.com/stretchr/testify/require"
+
+	"github.com/scorum/scorum-go/rpc/protocol"
 )
 
 const (
@@ -29,6 +30,6 @@ func TestUnknownAPIID(t *testing.T) {
 	err := caller.Call(context.Background(), "some api", "some method", []interface{}{}, reply)
 	require.Error(t, err)
 
-	require.IsType(t, &transport.RPCError{}, err)
+	require.IsType(t, &protocol.RPCError{}, err)
 	t.Logf("error: %+v", err)
 }

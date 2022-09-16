@@ -4,14 +4,15 @@ import (
 	"context"
 	"testing"
 
-	"github.com/scorum/scorum-go/transport/http"
 	"github.com/stretchr/testify/require"
+
+	"github.com/scorum/scorum-go/rpc"
 )
 
 const nodeHTTPS = "https://testnet.scorum.work"
 
 func TestGetChainProperties(t *testing.T) {
-	transport := http.NewTransport(nodeHTTPS)
+	transport := rpc.NewHTTPTransport(nodeHTTPS)
 	api := NewAPI(transport)
 
 	props, err := api.GetChainProperties(context.Background())

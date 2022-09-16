@@ -8,7 +8,7 @@ import (
 	"github.com/scorum/scorum-go/types"
 )
 
-// History, the key is operation sequence number
+// History the key is operation sequence number
 type History map[uint32]*types.OperationObject
 
 func (h *History) UnmarshalJSON(b []byte) (err error) {

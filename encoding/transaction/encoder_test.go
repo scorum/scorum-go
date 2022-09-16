@@ -1,8 +1,8 @@
 package transaction
 
 import (
-	"testing"
 	"bytes"
+	"testing"
 
 	"github.com/stretchr/testify/require"
 )
@@ -22,4 +22,3 @@ func TestEncoder_EncodeMoney_ValueOverflow(t *testing.T) {
 	err := encoder.EncodeMoney("11111111111111111111111111111111111111 SCR")
 	require.Error(t, err)
 }
-

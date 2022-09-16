@@ -2,6 +2,7 @@ package network_broadcast
 
 import (
 	"context"
+
 	"github.com/scorum/scorum-go/caller"
 	"github.com/scorum/scorum-go/types"
 )

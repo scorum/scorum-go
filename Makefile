@@ -1,6 +1,8 @@
 # supress output, run `make XXX V=` to be verbose
 V := @
 
+all: build test
+
 default: build
 
 .PHONY: build

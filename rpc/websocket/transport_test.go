@@ -2,12 +2,13 @@ package websocket
 
 import (
 	"context"
-	"github.com/gorilla/websocket"
 	"sync"
 	"testing"
 
-	"github.com/scorum/scorum-go/transport"
+	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/require"
+
+	"github.com/scorum/scorum-go/rpc/protocol"
 )
 
 const (
@@ -26,7 +27,7 @@ func TestUnknownAPIID(t *testing.T) {
 	err = caller.Call(context.Background(), "some api", "some method", []interface{}{}, reply)
 	require.Error(t, err)
 
-	require.IsType(t, &transport.RPCError{}, err)
+	require.IsType(t, &protocol.RPCError{}, err)
 	t.Logf("error: %+v", err)
 }
 
@@ -42,7 +43,7 @@ func TestUnknownMethod(t *testing.T) {
 	err = caller.Call(context.Background(), "database_api", "some method", []interface{}{}, reply)
 	require.Error(t, err)
 
-	require.IsType(t, &transport.RPCError{}, err)
+	require.IsType(t, &protocol.RPCError{}, err)
 	t.Logf("error: %+v", err)
 }
 
@@ -58,7 +59,7 @@ func TestTooFewArgumentsPassedToMethod(t *testing.T) {
 	err = caller.Call(context.Background(), "database_api", "get_block_header", []interface{}{}, reply)
 	require.Error(t, err)
 
-	require.IsType(t, &transport.RPCError{}, err)
+	require.IsType(t, &protocol.RPCError{}, err)
 	t.Logf("error: %+v", err)
 }
 

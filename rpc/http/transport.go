@@ -11,8 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
-	"github.com/scorum/scorum-go/transport"
+	"github.com/scorum/scorum-go/rpc/protocol"
 )
 
 type Transport struct {
@@ -49,7 +48,6 @@ func WithHttpClient(client *http.Client) func(*Transport) {
 
 func (caller *Transport) Call(ctx context.Context, api string, method string, args []interface{}, reply interface{}) error {
 	caller.reqMutex.Lock()
-	defer caller.reqMutex.Unlock()
 
 	// increase request id
 	if caller.requestID == math.MaxUint64 {
@@ -57,26 +55,28 @@ func (caller *Transport) Call(ctx context.Context, api string, method string, ar
 	}
 	caller.requestID++
 
-	request := transport.RPCRequest{
+	request := protocol.RPCRequest{
 		Method: "call",
 		ID:     caller.requestID,
 		Params: []interface{}{api, method, args},
 	}
 
+	caller.reqMutex.Unlock()
+
 	reqBody, err := json.Marshal(request)
 	if err != nil {
-		return err
+		return fmt.Errorf("json marshall: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, "POST", caller.Url, bytes.NewBuffer(reqBody))
 	if err != nil {
-		return err
+		return fmt.Errorf("http new request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := caller.client.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("http client do: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -86,12 +86,12 @@ func (caller *Transport) Call(ctx context.Context, api string, method string, ar
 
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return errors.Wrap(err, "failed to read body")
+		return fmt.Errorf("failed to read body: %w", err)
 	}
 
-	var rpcResponse transport.RPCResponse
+	var rpcResponse protocol.RPCResponse
 	if err = json.Unmarshal(respBody, &rpcResponse); err != nil {
-		return errors.Wrapf(err, "failed to unmarshal response: %+v", string(respBody))
+		return fmt.Errorf("json unmarshall rpc reponse: %w: %+v", err, string(respBody))
 	}
 
 	if rpcResponse.Error != nil {
@@ -100,7 +100,7 @@ func (caller *Transport) Call(ctx context.Context, api string, method string, ar
 
 	if rpcResponse.Result != nil {
 		if err := json.Unmarshal(*rpcResponse.Result, reply); err != nil {
-			return errors.Wrapf(err, "failed to unmarshal rpc result: %+v", string(*rpcResponse.Result))
+			return fmt.Errorf("json unmarshall rpc result: %w: %+v", err, string(*rpcResponse.Result))
 		}
 	}
 

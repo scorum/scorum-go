@@ -13,14 +13,15 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/scorum/scorum-go/transport"
+
+	"github.com/scorum/scorum-go/rpc/protocol"
 )
 
 var (
 	ErrWaitResponseTimeout = errors.New("wait response timeout")
 )
 
-type connection interface {
+type Connection interface {
 	WriteJSON(v interface{}) error
 	ReadMessage() (messageType int, p []byte, err error)
 	WriteMessage(messageType int, data []byte) error
@@ -28,7 +29,7 @@ type connection interface {
 }
 
 type Transport struct {
-	conn connection
+	conn Connection
 
 	reqMutex sync.Mutex
 	pending  map[uint64]*callRequest
@@ -52,7 +53,7 @@ type callRequest struct {
 	Reply *json.RawMessage // reply message
 }
 
-func NewTransport(conn connection) *Transport {
+func NewTransport(conn Connection) *Transport {
 	tr := Transport{
 		conn:                conn,
 		pending:             make(map[uint64]*callRequest),
@@ -74,7 +75,7 @@ func (tr *Transport) Call(ctx context.Context, api string, method string, args [
 	tr.mutex.Lock()
 	if tr.closing || tr.shutdown {
 		tr.mutex.Unlock()
-		return transport.ErrShutdown
+		return protocol.ErrShutdown
 	}
 	tr.pending[requestID] = &call
 	tr.mutex.Unlock()
@@ -86,7 +87,7 @@ func (tr *Transport) Call(ctx context.Context, api string, method string, args [
 		return tr.conn.WriteJSON(v)
 	}
 
-	r := transport.RPCRequest{
+	r := protocol.RPCRequest{
 		Method: "call",
 		ID:     requestID,
 		Params: []interface{}{api, method, args},
@@ -121,7 +122,7 @@ func (tr *Transport) Call(ctx context.Context, api string, method string, args [
 	return nil
 }
 
-// readPump pumps messages from the websocket connection and dispatches them.
+// readPump pumps messages from the websocket Connection and dispatches them.
 func (tr *Transport) readPump() {
 	for {
 		_, message, err := tr.conn.ReadMessage()
@@ -130,7 +131,7 @@ func (tr *Transport) readPump() {
 			return
 		}
 
-		var response transport.RPCResponse
+		var response protocol.RPCResponse
 		if err := json.Unmarshal(message, &response); err != nil {
 			tr.stop(fmt.Errorf("json unmarshal: %w", err))
 			return
@@ -144,7 +145,7 @@ func (tr *Transport) readPump() {
 			tr.onCallResponse(response, call)
 		} else {
 			// the message is not a pending call, but probably a callback notice
-			var incoming transport.RPCIncoming
+			var incoming protocol.RPCIncoming
 			if err := json.Unmarshal(message, &incoming); err != nil {
 				tr.stop(fmt.Errorf("json unmarshall: %w", err))
 				return
@@ -174,7 +175,7 @@ func (tr *Transport) stop(err error) {
 }
 
 // Call response handler
-func (tr *Transport) onCallResponse(response transport.RPCResponse, call *callRequest) {
+func (tr *Transport) onCallResponse(response protocol.RPCResponse, call *callRequest) {
 	tr.mutex.Lock()
 	defer tr.mutex.Unlock()
 
@@ -187,7 +188,7 @@ func (tr *Transport) onCallResponse(response transport.RPCResponse, call *callRe
 }
 
 // Incoming notice handler
-func (tr *Transport) onNotice(incoming transport.RPCIncoming) error {
+func (tr *Transport) onNotice(incoming protocol.RPCIncoming) error {
 	length := len(incoming.Params)
 
 	if length == 0 {
@@ -229,13 +230,13 @@ func (tr *Transport) SetCallback(api string, method string, notice func(args jso
 	return tr.Call(context.Background(), api, method, []interface{}{tr.callbackID}, nil)
 }
 
-// Close calls the underlying web socket Close method. If the connection is already
+// Close calls the underlying web socket Close method. If the Connection is already
 // shutting down, ErrShutdown is returned.
 func (tr *Transport) Close() error {
 	tr.mutex.Lock()
 	if tr.closing {
 		tr.mutex.Unlock()
-		return transport.ErrShutdown
+		return protocol.ErrShutdown
 	}
 	tr.closing = true
 	tr.mutex.Unlock()

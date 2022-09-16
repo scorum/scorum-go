@@ -2,7 +2,9 @@ package betting
 
 import (
 	"context"
+
 	"github.com/google/uuid"
+
 	"github.com/scorum/scorum-go/caller"
 )
 

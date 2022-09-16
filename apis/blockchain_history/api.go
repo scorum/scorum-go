@@ -2,6 +2,7 @@ package blockchain_history
 
 import (
 	"context"
+
 	"github.com/scorum/scorum-go/caller"
 	"github.com/scorum/scorum-go/types"
 )

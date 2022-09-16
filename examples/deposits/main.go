@@ -11,16 +11,16 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/scorum/scorum-go/key"
+	"github.com/shopspring/decimal"
 
 	scorumgo "github.com/scorum/scorum-go"
 	"github.com/scorum/scorum-go/apis/account_history"
 	"github.com/scorum/scorum-go/apis/blockchain_history"
 	"github.com/scorum/scorum-go/apis/chain"
+	"github.com/scorum/scorum-go/key"
+	"github.com/scorum/scorum-go/rpc"
 	"github.com/scorum/scorum-go/sign"
-	"github.com/scorum/scorum-go/transport/http"
 	"github.com/scorum/scorum-go/types"
-	"github.com/shopspring/decimal"
 )
 
 const (
@@ -65,7 +65,7 @@ func main() {
 	}
 
 	// create a blockchain rcp client
-	client = scorumgo.NewClient(http.NewTransport(testNet))
+	client = scorumgo.NewClient(rpc.NewHTTPTransport(testNet))
 
 	// seq is sequence number of the last processed history item
 	seq = 0
