@@ -6,7 +6,10 @@ import (
 	"fmt"
 )
 
-var ErrShutdown = errors.New("connection is shut down")
+var (
+	ErrShutdown            = errors.New("connection is shut down")
+	ErrWaitResponseTimeout = errors.New("wait response timeout")
+)
 
 type (
 	RPCRequest struct {

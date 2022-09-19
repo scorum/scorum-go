@@ -12,8 +12,10 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.4.0
 	github.com/kr/pretty v0.3.0 // indirect
-	github.com/pkg/errors v0.8.0
+	github.com/pkg/errors v0.9.1
+	github.com/prometheus/client_golang v1.13.0
 	github.com/shopspring/decimal v1.1.0
+	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.7.0
-	golang.org/x/crypto v0.0.0-20181001203147-e3636079e1a4
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 )

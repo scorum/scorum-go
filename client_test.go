@@ -26,10 +26,10 @@ const (
 // test accounts available at https://github.com/scorum/scorum/wiki/Testnet-existent-accounts
 
 func newWebsocketClient(t *testing.T) *Client {
-	ws, _, err := websocket.DefaultDialer.Dial(nodeWSS, nil)
-	require.NoError(t, err)
+	transport := rpc.NewWebSocketTransport(nodeWSS, websocket.DefaultDialer)
+	require.NoError(t, transport.Dial(context.Background()))
 
-	return NewClient(rpc.NewWebSocketTransport(ws))
+	return NewClient(transport)
 }
 
 func newHTTPClient() *Client {
