@@ -80,7 +80,7 @@ func (r *Connector) dial(ctx context.Context) error {
 		r.connectHandler()
 	}
 
-	isShutdown.Dec()
+	isShutdown.Inc()
 
 	return nil
 }
@@ -126,7 +126,7 @@ func (r *Connector) shutdown() {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	isShutdown.Inc()
+	isShutdown.Dec()
 
 	r.isShutdown = true
 }
