@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/gorilla/websocket"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/scorum/scorum-go/rpc/protocol"
@@ -93,7 +94,7 @@ func TestParallel(t *testing.T) {
 		go func(num int) {
 			var resp interface{}
 			err := caller.Call(context.Background(), "blockchain_history_api", "get_block_header", []interface{}{num}, &resp)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			wg.Done()
 		}(i)
 	}

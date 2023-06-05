@@ -17,6 +17,7 @@ import (
 
 const (
 	reconnectDelay = 2 * time.Second
+	writeDeadline  = 10 * time.Second
 )
 
 type Connector struct {
@@ -142,6 +143,7 @@ func (r *Connector) WriteJSON(v interface{}) error {
 	r.connMutex.Lock()
 	defer r.connMutex.Unlock()
 
+	_ = r.conn.SetWriteDeadline(time.Now().UTC().Add(writeDeadline))
 	if err := r.conn.WriteJSON(v); err != nil {
 		r.shutdown()
 		logrus.WithError(err).Error("write json")
