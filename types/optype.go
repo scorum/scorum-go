@@ -72,6 +72,8 @@ var opTypes = []OpType{
 	AdjustNFTExperience,
 	UpdateNFTName,
 
+	BurnOperationOpType,
+
 	// virtual operations
 	CommentBenefactorReward,
 	CommentPayoutUpdate,
@@ -137,6 +139,7 @@ const (
 	AtomicswapInitiateOperation          OpType = "atomicswap_initiate_operation"
 	AtomicswapRedeemOperation            OpType = "atomicswap_redeem_operation"
 	AtomicswapRefundOperation            OpType = "atomicswap_refund_operation"
+	BurnOperationOpType                  OpType = "burn"
 
 	CloseBudgetByAdvertisingModeratorOperation OpType = "close_budget_by_advertising_moderator"
 	UpdateBudgetOperation                      OpType = "update_budget"

@@ -160,6 +160,7 @@ var knownOperations = map[OpType]reflect.Type{
 	UpdateGameRoundResult:             reflect.TypeOf(UpdateGameRoundResultOperation{}),
 	AdjustNFTExperience:               reflect.TypeOf(AdjustNFTExperienceOperation{}),
 	UpdateNFTName:                     reflect.TypeOf(UpdateNFTNameOperation{}),
+	BurnOperationOpType:               reflect.TypeOf(BurnOperation{}),
 }
 
 type UnknownOperation struct {
@@ -793,5 +794,23 @@ func (op *UpdateGameRoundResultOperation) MarshalTransaction(encoder *transactio
 	enc.Encode(op.Proof)
 	enc.Encode(op.Vrf)
 	enc.Encode(op.Result)
+	return enc.Err()
+}
+
+type BurnOperation struct {
+	Owner string `json:"owner"`
+	To    string `json:"to"`
+
+	Amount string `json:"amount"`
+}
+
+func (op *BurnOperation) Type() OpType { return BurnOperationOpType }
+
+func (op *BurnOperation) MarshalTransaction(encoder *transaction.Encoder) error {
+	enc := transaction.NewRollingEncoder(encoder)
+	enc.EncodeUVarint(uint64(op.Type().Code()))
+	enc.Encode(op.Owner)
+	enc.Encode(op.To)
+	enc.EncodeMoney(op.Amount)
 	return enc.Err()
 }
