@@ -19,9 +19,8 @@ const (
 	reconnectDelay = 2 * time.Second
 	writeDeadline  = 10 * time.Second
 
-	pingDuration     = 5 * time.Second
-	pingTimeout      = 10 * time.Second
-	notAliveDuration = 30 * time.Second
+	pingDuration = 5 * time.Second
+	pingTimeout  = 10 * time.Second
 )
 
 type Connector struct {
@@ -107,20 +106,12 @@ func (r *Connector) loop(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-pingTicker.C:
-			now := time.Now()
-			if r.getAliveAt().After(now.Add(notAliveDuration)) {
-				r.shutdown()
-				logrus.WithFields(map[string]interface{}{
-					"aliveAt":          r.getAliveAt(),
-					"appTimeNow":       now,
-					"notAliveDuration": notAliveDuration,
-				}).Error("stopped ping: not alive")
-				continue
-			}
+			go func() {
+				r.connMutex.Lock()
+				defer r.connMutex.Unlock()
 
-			r.connMutex.Lock()
-			_ = r.conn.WriteControl(websocket.PingMessage, nil, time.Now().Add(pingTimeout))
-			r.connMutex.Unlock()
+				_ = r.conn.WriteControl(websocket.PingMessage, nil, time.Now().Add(pingTimeout))
+			}()
 		default:
 			r.mutex.RLock()
 			if r.isClosing {
@@ -234,7 +225,7 @@ func (r *Connector) updateAlive() {
 	r.aliveAt = time.Now()
 }
 
-func (r *Connector) getAliveAt() time.Time {
+func (r *Connector) GetAliveAt() time.Time {
 	r.aliveMutex.Lock()
 	defer r.aliveMutex.Unlock()
 

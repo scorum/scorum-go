@@ -143,6 +143,10 @@ func (tr *Transport) OnMessage(message []byte) {
 	}
 }
 
+func (tr *Transport) ConnectionAliveAt() time.Time {
+	return tr.conn.GetAliveAt()
+}
+
 // readPump pumps messages from the websocket Connection and dispatches them.
 // func (tr *Transport) readPump() {
 // 	for {
