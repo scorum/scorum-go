@@ -81,6 +81,7 @@ func (r *Connector) dial(ctx context.Context) error {
 
 	r.updateAlive()
 	conn.SetPongHandler(func(_ string) error {
+		pingPongCounter.Dec()
 		r.updateAlive()
 		return nil
 	})
@@ -110,7 +111,10 @@ func (r *Connector) loop(ctx context.Context) {
 				r.connMutex.Lock()
 				defer r.connMutex.Unlock()
 
-				_ = r.conn.WriteControl(websocket.PingMessage, nil, time.Now().Add(pingTimeout))
+				err := r.conn.WriteControl(websocket.PingMessage, nil, time.Now().Add(pingTimeout))
+				if err != nil {
+					pingPongCounter.Inc()
+				}
 			}()
 		default:
 			r.mutex.RLock()
