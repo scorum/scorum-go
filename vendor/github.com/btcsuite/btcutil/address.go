@@ -23,7 +23,7 @@ import (
 type UnsupportedWitnessVerError byte
 
 func (e UnsupportedWitnessVerError) Error() string {
-	return "unsupported witness version: " + string(e)
+	return fmt.Sprintf("unsupported witness version: %#x", e)
 }
 
 // UnsupportedWitnessProgLenError describes an error where a segwit address
@@ -31,7 +31,7 @@ func (e UnsupportedWitnessVerError) Error() string {
 type UnsupportedWitnessProgLenError int
 
 func (e UnsupportedWitnessProgLenError) Error() string {
-	return "unsupported witness program length: " + string(e)
+	return fmt.Sprintf("unsupported witness program length: %d", e)
 }
 
 var (
@@ -188,8 +188,8 @@ func DecodeAddress(addr string, defaultNet *chaincfg.Params) (Address, error) {
 	}
 	switch len(decoded) {
 	case ripemd160.Size: // P2PKH or P2SH
-		isP2PKH := chaincfg.IsPubKeyHashAddrID(netID)
-		isP2SH := chaincfg.IsScriptHashAddrID(netID)
+		isP2PKH := netID == defaultNet.PubKeyHashAddrID
+		isP2SH := netID == defaultNet.ScriptHashAddrID
 		switch hash160 := decoded; {
 		case isP2PKH && isP2SH:
 			return nil, ErrAddressCollision
