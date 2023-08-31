@@ -18,6 +18,9 @@ import (
 const (
 	reconnectDelay = 2 * time.Second
 	writeDeadline  = 10 * time.Second
+
+	pingDuration = 5 * time.Second
+	pingTimeout  = 10 * time.Second
 )
 
 type Connector struct {
@@ -32,6 +35,9 @@ type Connector struct {
 
 	messageHandler func(message []byte)
 	connectHandler func()
+
+	aliveMutex sync.Mutex
+	aliveAt    time.Time
 }
 
 func NewConnector(url string, dialer *websocket.Dialer) *Connector {
@@ -73,6 +79,13 @@ func (r *Connector) dial(ctx context.Context) error {
 		return fmt.Errorf("dial: %w", err)
 	}
 
+	r.updateAlive()
+	conn.SetPongHandler(func(_ string) error {
+		pingPongCounter.Dec()
+		r.updateAlive()
+		return nil
+	})
+
 	r.isClosing = false
 	r.isShutdown = false
 	r.conn = conn
@@ -87,10 +100,22 @@ func (r *Connector) dial(ctx context.Context) error {
 }
 
 func (r *Connector) loop(ctx context.Context) {
+	pingTicker := time.NewTicker(pingDuration)
+
 	for {
 		select {
 		case <-ctx.Done():
 			return
+		case <-pingTicker.C:
+			go func() {
+				r.connMutex.Lock()
+				defer r.connMutex.Unlock()
+
+				err := r.conn.WriteControl(websocket.PingMessage, nil, time.Now().Add(pingTimeout))
+				if err != nil {
+					pingPongCounter.Inc()
+				}
+			}()
 		default:
 			r.mutex.RLock()
 			if r.isClosing {
@@ -116,6 +141,7 @@ func (r *Connector) loop(ctx context.Context) {
 				continue
 			}
 
+			r.updateAlive()
 			if r.messageHandler != nil {
 				r.messageHandler(message)
 			}
@@ -194,4 +220,18 @@ func (r *Connector) Close() error {
 	}
 
 	return nil
+}
+
+func (r *Connector) updateAlive() {
+	r.aliveMutex.Lock()
+	defer r.aliveMutex.Unlock()
+
+	r.aliveAt = time.Now()
+}
+
+func (r *Connector) GetAliveAt() time.Time {
+	r.aliveMutex.Lock()
+	defer r.aliveMutex.Unlock()
+
+	return r.aliveAt
 }
