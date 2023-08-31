@@ -2,6 +2,8 @@ package transaction
 
 import (
 	"encoding/binary"
+	"errors"
+	"fmt"
 	"io"
 	"math"
 	"regexp"
@@ -9,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 )
 
 type Encoder struct {
@@ -38,7 +39,7 @@ func (encoder *Encoder) EncodeUVarint(i uint64) error {
 
 func (encoder *Encoder) EncodeNumber(v interface{}) error {
 	if err := binary.Write(encoder.w, binary.LittleEndian, v); err != nil {
-		return errors.Wrapf(err, "encoder: failed to write number: %v", v)
+		return fmt.Errorf("encoder: failed to write number: %v: %w", v, err)
 	}
 	return nil
 }
@@ -86,7 +87,7 @@ func (encoder *Encoder) Encode(v interface{}) error {
 		return encoder.writeBytes(v)
 
 	default:
-		return errors.Errorf("encoder: unsupported type (%+v) encountered", v)
+		return fmt.Errorf("encoder: unsupported type (%+v) encountered", v)
 	}
 }
 
@@ -98,7 +99,7 @@ func (encoder *Encoder) EncodeMoney(s string) error {
 		amm, _ := strconv.ParseInt(strings.Replace(asset[0], ".", "", -1), 10, 64)
 
 		if amm == math.MaxInt64 {
-			return errors.Errorf("encoder: value cannot be equal or greater than %d", math.MaxInt64)
+			return fmt.Errorf("encoder: value cannot be equal or greater than %d", math.MaxInt64)
 		}
 
 		var perc int
@@ -108,24 +109,24 @@ func (encoder *Encoder) EncodeMoney(s string) error {
 			perc = len(asset[0]) - ind - 1
 		}
 		if err := binary.Write(encoder.w, binary.LittleEndian, amm); err != nil {
-			return errors.Wrapf(err, "encoder: failed to write number: %v", amm)
+			return fmt.Errorf("encoder: failed to write number: %v: %w", amm, err)
 		}
 		if err := binary.Write(encoder.w, binary.LittleEndian, byte(perc)); err != nil {
-			return errors.Wrapf(err, "encoder: failed to write number: %v", perc)
+			return fmt.Errorf("encoder: failed to write number: %v: %w", perc, err)
 		}
 
 		if _, err := io.Copy(encoder.w, strings.NewReader(asset[1])); err != nil {
-			return errors.Wrapf(err, "encoder: failed to write string: %v", asset[1])
+			return fmt.Errorf("encoder: failed to write string: %v: %w", asset[1], err)
 		}
 
 		for i := byte(len(asset[1])); i < 7; i++ {
 			if err := binary.Write(encoder.w, binary.LittleEndian, byte(0)); err != nil {
-				return errors.Wrapf(err, "encoder: failed to write number: %v", 0)
+				return fmt.Errorf("encoder: failed to write number: %v: %w", 0, err)
 			}
 		}
 		return nil
 	} else {
-		return errors.New("Expecting amount like '99.000 SCR'")
+		return errors.New("expecting amount like '99.000 SCR'")
 	}
 }
 
@@ -139,7 +140,7 @@ func (encoder *Encoder) EncodeUUID(id uuid.UUID) error {
 
 func (encoder *Encoder) encodeString(v string) error {
 	if err := encoder.EncodeUVarint(uint64(len(v))); err != nil {
-		return errors.Wrapf(err, "encoder: failed to write string: %v", v)
+		return fmt.Errorf("encoder: failed to write string: %v: %w", v, err)
 	}
 
 	return encoder.writeString(v)
@@ -147,14 +148,14 @@ func (encoder *Encoder) encodeString(v string) error {
 
 func (encoder *Encoder) writeBytes(bs []byte) error {
 	if _, err := encoder.w.Write(bs); err != nil {
-		return errors.Wrapf(err, "encoder: failed to write bytes: %v", bs)
+		return fmt.Errorf("encoder: failed to write bytes: %v: %w", bs, err)
 	}
 	return nil
 }
 
 func (encoder *Encoder) writeString(s string) error {
 	if _, err := io.Copy(encoder.w, strings.NewReader(s)); err != nil {
-		return errors.Wrapf(err, "encoder: failed to write string: %v", s)
+		return fmt.Errorf("encoder: failed to write string: %v: %w", s, err)
 	}
 	return nil
 }

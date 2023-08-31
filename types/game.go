@@ -2,7 +2,7 @@ package types
 
 import (
 	"encoding/json"
-	"github.com/pkg/errors"
+	"errors"
 	"reflect"
 )
 
