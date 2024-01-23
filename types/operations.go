@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/google/uuid"
+
 	"github.com/scorum/scorum-go/encoding/transaction"
 )
 
@@ -434,8 +435,8 @@ func (op *DelegateScorumpowerOperation) Type() OpType {
 func (op *DelegateScorumpowerOperation) MarshalTransaction(encoder *transaction.Encoder) error {
 	enc := transaction.NewRollingEncoder(encoder)
 	enc.EncodeUVarint(uint64(op.Type().Code()))
-	enc.Encode(op.Delegatee)
 	enc.Encode(op.Delegator)
+	enc.Encode(op.Delegatee)
 	enc.EncodeMoney(op.Scorumpower)
 	return enc.Err()
 }
